@@ -348,9 +348,6 @@ THE SOFTWARE.
 
 jschardet
 3.0.0 <https://github.com/aadsm/jschardet>
-
-jschardet
-3.0.0 <https://github.com/aadsm/jschardet>
 Copyright 2023 jschardet contributors
 
 Chardet was originally ported from C++ by Mark Pilgrim. It is now
@@ -376,7 +373,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with jschardet. If not, see (https://www.gnu.org/licenses/).
 
 The source code compliance for jschardet can be obtained from
-https://amazon-source-code-downloads.s3.amazonaws.com/lambda-console/aws-lambda-console-code-editor.tar.gz
+https://amazon-source-code-downloads.s3.amazonaws.com/lambda-console/jschardet-3.0.0.tar.gz
 
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999
