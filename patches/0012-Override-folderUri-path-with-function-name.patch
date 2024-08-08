@@ -1,0 +1,46 @@
+From bd47409d198b409f332b82b2530c00aaac579cf7 Mon Sep 17 00:00:00 2001
+From: Tianbo Wang <>
+Date: Thu, 18 Jul 2024 22:41:15 +0000
+Subject: [PATCH] Override folderUri path with function name
+
+This patch modifies the way the workbench in VS Code is initialized when a folder URI is provided. Specifically, it checks the URL's search parameters for a "function" parameter. For example, if the original folder URI was "file:///path/to/folder", and the URL had a "function=myFunction" parameter, the patch would modify the folder URI to be "file:///myFunction" before passing it to the workbench. 
+
+By overriding the folder URI path with the value of the "function" parameter, the workbench can potentially be initialized in a way that is tailored to a specific function or context, rather than just the general folder.
+---
+ src/vs/code/browser/workbench/workbench.ts | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
+index 3086125..30c0de9 100644
+--- a/src/vs/code/browser/workbench/workbench.ts
++++ b/src/vs/code/browser/workbench/workbench.ts
+@@ -1,3 +1,8 @@
++/*---------------------------------------------------------------------------------------------
++ *  Copyright (c) Microsoft Corporation. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *--------------------------------------------------------------------------------------------*/
++
+ import { mainWindow } from 'vs/base/browser/window';
+ import { URI, UriComponents } from 'vs/base/common/uri';
+ import type { IWorkbenchConstructionOptions, IWorkspace, IWorkspaceProvider } from 'vs/workbench/browser/web.api';
+@@ -37,7 +42,16 @@ declare const window: any;
+ 
+   let workspace;
+   if (config.folderUri) {
+-    workspace = { folderUri: URI.revive(config.folderUri) };
++    const search = mainWindow.location.search;
++    let functionName;
++    if (search.includes('function=')) {
++      functionName = search?.split('&')?.find(s => s.includes('function='))?.split('=')[1];
++    }
++    const folderUriObj: UriComponents = {
++      ...config.folderUri,
++      path: functionName ? `/${functionName}` : config.folderUri.path
++    };
++    workspace = { folderUri: URI.revive(folderUriObj) };
+   } else if (config.workspaceUri) {
+     workspace = { workspaceUri: URI.revive(config.workspaceUri) };
+   } else {
+-- 
+2.40.1
+

@@ -1,0 +1,44 @@
+From a019135b21517c62b88a1108ff894408288106e7 Mon Sep 17 00:00:00 2001
+From: Shiwei Ge <>
+Date: Fri, 21 Jun 2024 17:44:58 -0700
+Subject: [PATCH] Disable online service
+
+This patch is disabling the automatic update functionality in Code OSS to prevent unwanted or disruptive updates. Users will now have to manually check for and install updates, and will not see the release notes automatically.
+---
+ src/vs/platform/update/common/update.config.contribution.ts | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/vs/platform/update/common/update.config.contribution.ts b/src/vs/platform/update/common/update.config.contribution.ts
+index 4134233..2169613 100644
+--- a/src/vs/platform/update/common/update.config.contribution.ts
++++ b/src/vs/platform/update/common/update.config.contribution.ts
+@@ -18,7 +18,7 @@ configurationRegistry.registerConfiguration({
+ 		'update.mode': {
+ 			type: 'string',
+ 			enum: ['none', 'manual', 'start', 'default'],
+-			default: 'default',
++			default: 'none',
+ 			scope: ConfigurationScope.APPLICATION,
+ 			description: localize('updateMode', "Configure whether you receive automatic updates. Requires a restart after change. The updates are fetched from a Microsoft online service."),
+ 			tags: ['usesOnlineServices'],
+@@ -42,7 +42,7 @@ configurationRegistry.registerConfiguration({
+ 		},
+ 		'update.enableWindowsBackgroundUpdates': {
+ 			type: 'boolean',
+-			default: true,
++			default: false,
+ 			scope: ConfigurationScope.APPLICATION,
+ 			title: localize('enableWindowsBackgroundUpdatesTitle', "Enable Background Updates on Windows"),
+ 			description: localize('enableWindowsBackgroundUpdates', "Enable to download and install new VS Code versions in the background on Windows."),
+@@ -50,7 +50,7 @@ configurationRegistry.registerConfiguration({
+ 		},
+ 		'update.showReleaseNotes': {
+ 			type: 'boolean',
+-			default: true,
++			default: false,
+ 			scope: ConfigurationScope.APPLICATION,
+ 			description: localize('showReleaseNotes', "Show Release Notes after an update. The Release Notes are fetched from a Microsoft online service."),
+ 			tags: ['usesOnlineServices']
+-- 
+2.39.3 (Apple Git-146)
+

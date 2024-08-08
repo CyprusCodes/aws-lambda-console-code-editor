@@ -1,0 +1,190 @@
+From e7f51d9129ab4d45b616708fcc728db1cb449e96 Mon Sep 17 00:00:00 2001
+From: Keen Wilson <>
+Date: Tue, 30 Jul 2024 19:36:32 +0000
+Subject: [PATCH] Remove simple browser command and simplify logging around
+ message, extension gallery, and invalid workspace
+
+This patch simplifies and removes the simple browser functionality in application, along with reducing unnecessary logging in certain areas of the codebase.
+---
+ extensions/simple-browser/package.json         | 18 +-----------------
+ extensions/simple-browser/src/extension.ts     | 14 --------------
+ .../webview/browser/pre/index-no-csp.html      |  2 +-
+ .../contrib/webview/browser/pre/index.html     |  2 +-
+ .../browser/configurationService.ts            |  6 +++++-
+ .../browser/webExtensionsScannerService.ts     | 14 +++++++-------
+ 6 files changed, 15 insertions(+), 41 deletions(-)
+
+diff --git a/extensions/simple-browser/package.json b/extensions/simple-browser/package.json
+index 982333b..110f3f3 100644
+--- a/extensions/simple-browser/package.json
++++ b/extensions/simple-browser/package.json
+@@ -36,24 +36,8 @@
+   },
+   "contributes": {
+     "commands": [
+-      {
+-        "command": "simpleBrowser.show",
+-        "title": "Show",
+-        "category": "Simple Browser"
+-      }
+     ],
+-    "configuration": [
+-      {
+-        "title": "Simple Browser",
+-        "properties": {
+-          "simpleBrowser.focusLockIndicator.enabled": {
+-            "type": "boolean",
+-            "default": true,
+-            "title": "Focus Lock Indicator Enabled",
+-            "description": "%configuration.focusLockIndicator.enabled.description%"
+-          }
+-        }
+-      }
++    "configuration": [
+     ]
+   },
+   "scripts": {
+diff --git a/extensions/simple-browser/src/extension.ts b/extensions/simple-browser/src/extension.ts
+index 5760295..f12eb6c 100644
+--- a/extensions/simple-browser/src/extension.ts
++++ b/extensions/simple-browser/src/extension.ts
+@@ -13,7 +13,6 @@ declare class URL {
+ }
+ 
+ const openApiCommand = 'simpleBrowser.api.open';
+-const showCommand = 'simpleBrowser.show';
+ 
+ const enabledHosts = new Set<string>([
+ 	'localhost',
+@@ -42,19 +41,6 @@ export function activate(context: vscode.ExtensionContext) {
+ 		}
+ 	}));
+ 
+-	context.subscriptions.push(vscode.commands.registerCommand(showCommand, async (url?: string) => {
+-		if (!url) {
+-			url = await vscode.window.showInputBox({
+-				placeHolder: vscode.l10n.t("https://example.com"),
+-				prompt: vscode.l10n.t("Enter url to visit")
+-			});
+-		}
+-
+-		if (url) {
+-			manager.show(url);
+-		}
+-	}));
+-
+ 	context.subscriptions.push(vscode.commands.registerCommand(openApiCommand, (url: vscode.Uri, showOptions?: {
+ 		preserveFocus?: boolean;
+ 		viewColumn: vscode.ViewColumn;
+diff --git a/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html b/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
+index 5e094fc..05b2124 100644
+--- a/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
++++ b/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
+@@ -316,7 +316,7 @@
+ 							handler(e, e.data.args);
+ 						}
+ 					} else {
+-						console.log('no handler for ', e);
++						// do nothing, no one listening for that particular message.
+ 					}
+ 				};
+ 			}
+diff --git a/src/vs/workbench/contrib/webview/browser/pre/index.html b/src/vs/workbench/contrib/webview/browser/pre/index.html
+index fa7b15e..379e25e 100644
+--- a/src/vs/workbench/contrib/webview/browser/pre/index.html
++++ b/src/vs/workbench/contrib/webview/browser/pre/index.html
+@@ -317,7 +317,7 @@
+ 							handler(e, e.data.args);
+ 						}
+ 					} else {
+-						console.log('no handler for ', e);
++						// do nothing, no one listening for that particular message.
+ 					}
+ 				};
+ 			}
+diff --git a/src/vs/workbench/services/configuration/browser/configurationService.ts b/src/vs/workbench/services/configuration/browser/configurationService.ts
+index e5a67ab..40ce845 100644
+--- a/src/vs/workbench/services/configuration/browser/configurationService.ts
++++ b/src/vs/workbench/services/configuration/browser/configurationService.ts
+@@ -985,7 +985,11 @@ export class WorkspaceService extends Disposable implements IWorkbenchConfigurat
+ 					continue;
+ 				}
+ 			} catch (e) {
+-				this.logService.warn(`Ignoring the error while validating workspace folder ${workspaceFolder.uri.toString()} - ${toErrorMessage(e)}`);
++				// It's safe to ignore this warning in the embedded VS Code environment of the application
++				// The embedded iframe is a temporary and isolated environment, and the warning is likely due to
++				// the limited file system integration of the embedded VS Code, rather than a critical issue.
++				// As long as the core functionality of developing and testing the function is not affected,
++				// this warning can be safely ignored.
+ 			}
+ 			validWorkspaceFolders.push(workspaceFolder);
+ 		}
+diff --git a/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts b/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts
+index 2ee2382..2a13f7b 100644
+--- a/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts
++++ b/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts
+@@ -158,7 +158,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
+ 					this.logService.info('Found additional builtin gallery extensions in env', extensions);
+ 				}
+ 				if (extensionLocations.length) {
+-					this.logService.info('Found additional builtin location extensions in env', extensionLocations.map(e => e.toString()));
++					// Not showing Found additional builtin location extensions in env
+ 				}
+ 				if (extensionGalleryResources.length) {
+ 					this.logService.info('Found additional builtin extension gallery resources in env', extensionGalleryResources.map(e => e.toString()));
+@@ -251,7 +251,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
+ 
+ 	private async getCustomBuiltinExtensionsFromGallery(scanOptions?: ScanOptions): Promise<IScannedExtension[]> {
+ 		if (!this.galleryService.isEnabled()) {
+-			this.logService.info('Ignoring fetching additional builtin extensions from gallery as it is disabled.');
++			// Ignoring fetching additional builtin extensions from gallery as it is disabled.
+ 			return [];
+ 		}
+ 		const result: IScannedExtension[] = [];
+@@ -353,7 +353,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
+ 	private async updateCustomBuiltinExtensionsCache(): Promise<IWebExtension[]> {
+ 		if (!this._updateCustomBuiltinExtensionsCachePromise) {
+ 			this._updateCustomBuiltinExtensionsCachePromise = (async () => {
+-				this.logService.info('Updating additional builtin extensions cache');
++				// Updating additional builtin extensions cache
+ 				const { extensions, extensionGalleryResources } = await this.readCustomBuiltinExtensionsInfoFromEnv();
+ 				const [galleryWebExtensions, extensionGalleryResourceWebExtensions] = await Promise.all([
+ 					this.resolveBuiltinGalleryExtensions(extensions),
+@@ -384,7 +384,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
+ 				result.set(webExtension.identifier.id.toLowerCase(), webExtension);
+ 				extensionInfos.push({ id: webExtension.identifier.id, version: webExtension.version });
+ 			} catch (error) {
+-				this.logService.info(`Ignoring additional builtin extension from gallery resource ${extensionGalleryResource.toString()} because there is an error while converting it into web extension`, getErrorMessage(error));
++				// Ignoring additional builtin extension from gallery resource
+ 			}
+ 		}));
+ 		const galleryExtensions = await this.galleryService.getExtensions(extensionInfos, CancellationToken.None);
+@@ -411,14 +411,14 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
+ 		const galleryExtensionsMap = await this.getExtensionsWithDependenciesAndPackedExtensions(extensions);
+ 		const missingExtensions = extensions.filter(({ id }) => !galleryExtensionsMap.has(id.toLowerCase()));
+ 		if (missingExtensions.length) {
+-			this.logService.info('Skipping the additional builtin extensions because their compatible versions are not found.', missingExtensions);
++			// Skipping the additional builtin extensions because their compatible versions are not found
+ 		}
+ 		await Promise.all([...galleryExtensionsMap.values()].map(async gallery => {
+ 			try {
+ 				const webExtension = await this.toWebExtensionFromGallery(gallery, { isPreReleaseVersion: gallery.properties.isPreReleaseVersion, preRelease: gallery.properties.isPreReleaseVersion, isBuiltin: true });
+ 				webExtensions.push(webExtension);
+ 			} catch (error) {
+-				this.logService.info(`Ignoring additional builtin extension ${gallery.identifier.id} because there is an error while converting it into web extension`, getErrorMessage(error));
++				// Ignoring additional builtin extension
+ 			}
+ 		}));
+ 		return webExtensions;
+@@ -442,7 +442,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
+ 				const webExtension = await this.toWebExtensionFromGallery(gallery, { isPreReleaseVersion: gallery.properties.isPreReleaseVersion, preRelease: gallery.properties.isPreReleaseVersion, isBuiltin: true });
+ 				result.set(webExtension.identifier.id.toLowerCase(), webExtension);
+ 			} catch (error) {
+-				this.logService.info(`Ignoring additional builtin extension ${gallery.identifier.id} because there is an error while converting it into web extension`, getErrorMessage(error));
++				// Ignoring additional builtin extension gallery because there is an error while converting it into web extension
+ 			}
+ 		}));
+ 	}
+-- 
+2.40.1
+

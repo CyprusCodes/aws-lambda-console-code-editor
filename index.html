@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+    <link data-name="vs/workbench/workbench.web.main" rel="stylesheet" href="./out/vs/workbench/workbench.web.main.css" />
+  </head>
+
+  <body aria-label=""></body>
+
+  <!-- Startup (do not modify order of script tags!) -->
+  <script src="./out/vs/loader.js"></script>
+  <script src="./out/vs/webPackagePaths.js"></script>
+  <script>
+    // Configure the root URL and update the paths for web packages
+    const root = window.location.origin + window.location.pathname.replace('/index.html','');
+    // Update the paths for web packages to include the `root` URL and `node_modules` path.
+    Object.keys(self.webPackagePaths).forEach((key) => {
+      self.webPackagePaths[key] = `${root}/node_modules/${key}/${self.webPackagePaths[key]}`;
+    });
+    // Configure RequireJS for module loading and trusted types policy 
+    require.config({
+      baseUrl: `${root}/out`,
+      recordStats: true,
+      // browser will only execute scripts from approved, trusted sources
+      trustedTypesPolicy: window.trustedTypes?.createPolicy('amdLoader', {
+        createScriptURL(value) {
+          return value;
+        },
+      }),
+      paths: self.webPackagePaths,
+    });
+  </script>
+  <script src="./out/vs/workbench/workbench.web.main.nls.js"></script>
+  <script src="./out/vs/workbench/workbench.web.main.js"></script>
+  <script src="./out/vs/code/browser/workbench/workbench.js"></script>
+</html>

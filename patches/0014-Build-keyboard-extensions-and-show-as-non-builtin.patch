@@ -1,0 +1,84 @@
+From 3988fb5c9290654e72ea8359dc761d594159e99f Mon Sep 17 00:00:00 2001
+From: Shiwei Ge <>
+Date: Sat, 27 Jul 2024 12:35:31 -0700
+Subject: [PATCH] Build keyboard extensions and show as non-builtin
+
+This patch manages specific keyboard extension plugins. It disables certain keyboard extension plugins (e.g., vscodevim.vim, ms-vscode.sublime-keybindings, tuttieee.emacs-mcx) by default, as they are considered "injected" extensions. It marks these "injected" extensions as non-builtin extensions, so that they are displayed differently in the Extensions view.
+---
+ .../browser/extensionsWorkbenchService.ts           | 13 +++++++++++++
+ .../browser/webExtensionsScannerService.ts          |  8 ++++++--
+ 2 files changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts b/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts
+index 89ea0e5..f17111f 100644
+--- a/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts
++++ b/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts
+@@ -832,6 +832,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
+ 	private readonly remoteExtensions: Extensions | null = null;
+ 	private readonly webExtensions: Extensions | null = null;
+ 	private readonly extensionsServers: Extensions[] = [];
++	private readonly injectedExtensions: string [] = ['vscodevim.vim', 'ms-vscode.sublime-keybindings','tuttieee.emacs-mcx'];
+ 
+ 	private updatesCheckDelayer: ThrottledDelayer<void>;
+ 	private autoUpdateDelayer: ThrottledDelayer<void>;
+@@ -932,12 +933,24 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
+ 		this.whenInitialized = this.initialize();
+ 	}
+ 
++	private async disableInjectedExtensions(): Promise<void> {
++		const hasDisabledBefore = this.storageService.get('lambda.disableKeyboards.before', StorageScope.APPLICATION, '0');
++		if(hasDisabledBefore === '0') {
++			const things = await this.extensionManagementServerService.webExtensionManagementServer?.extensionManagementService.getInstalled();
++			const targets = things?.filter(v => this.injectedExtensions.includes(v.identifier.id)) || [];
++			this.extensionEnablementService.setEnablement(targets, EnablementState.DisabledGlobally);
++			this.storageService.store('lambda.disableKeyboards.before', '1', StorageScope.APPLICATION, StorageTarget.MACHINE);
++		}
++		return;
++	}
++
+ 	private async initialize(): Promise<void> {
+ 		// initialize local extensions
+ 		await Promise.all([this.queryLocal(), this.extensionService.whenInstalledExtensionsRegistered()]);
+ 		if (this._store.isDisposed) {
+ 			return;
+ 		}
++		await this.disableInjectedExtensions();
+ 		this.onDidChangeRunningExtensions(this.extensionService.extensions, []);
+ 		this._register(this.extensionService.onDidChangeExtensions(({ added, removed }) => this.onDidChangeRunningExtensions(added, removed)));
+ 
+diff --git a/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts b/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts
+index 17c6ac2..2ee2382 100644
+--- a/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts
++++ b/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts
+@@ -99,7 +99,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
+ 	private readonly systemExtensionsCacheResource: URI | undefined = undefined;
+ 	private readonly customBuiltinExtensionsCacheResource: URI | undefined = undefined;
+ 	private readonly resourcesAccessQueueMap = new ResourceMap<Queue<IWebExtension[]>>();
+-
++	private readonly injectedExtensions: string [] = ['vscodevim.vim', 'ms-vscode.sublime-keybindings','tuttieee.emacs-mcx'];
+ 	constructor(
+ 		@IBrowserWorkbenchEnvironmentService private readonly environmentService: IBrowserWorkbenchEnvironmentService,
+ 		@IBuiltinExtensionsScannerService private readonly builtinExtensionsScannerService: IBuiltinExtensionsScannerService,
+@@ -210,6 +210,10 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
+ 		return [...result.values()];
+ 	}
+ 
++	private isBuiltin(id: string): boolean {
++		return !this.injectedExtensions.includes(id);
++	}
++
+ 	/**
+ 	 * All extensions defined via `additionalBuiltinExtensions` API
+ 	 */
+@@ -232,7 +236,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
+ 		await Promise.allSettled(extensionLocations.map(async extensionLocation => {
+ 			try {
+ 				const webExtension = await this.toWebExtension(extensionLocation);
+-				const extension = await this.toScannedExtension(webExtension, true);
++				const extension = await this.toScannedExtension(webExtension, this.isBuiltin(webExtension.identifier.id));
+ 				if (extension.isValid || !scanOptions?.skipInvalidExtensions) {
+ 					result.push(extension);
+ 				} else {
+-- 
+2.39.3 (Apple Git-146)
+

@@ -1,0 +1,47 @@
+From 4faa7b7c88be5b54c0739f23a453d5b467b1f69d Mon Sep 17 00:00:00 2001
+From: Shiwei Ge <>
+Date: Mon, 17 Jun 2024 17:09:02 -0700
+Subject: [PATCH] Fullscreen toggle button
+
+This patch adds a fullscreen toggle button to the Layout Control Menu in Code OSS's workbench.
+---
+ .../workbench/browser/actions/layoutActions.ts | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/src/vs/workbench/browser/actions/layoutActions.ts b/src/vs/workbench/browser/actions/layoutActions.ts
+index 765693c16c8..0f152f172aa 100644
+--- a/src/vs/workbench/browser/actions/layoutActions.ts
++++ b/src/vs/workbench/browser/actions/layoutActions.ts
+@@ -1378,7 +1378,8 @@ registerAction2(class CustomizeLayoutAction extends Action2 {
+ 				{
+ 					id: MenuId.LayoutControlMenu,
+ 					when: ContextKeyExpr.equals('config.workbench.layoutControl.type', 'both'),
+-					group: 'z_end'
++					group: '0_workbench_toggles',
++					order: 3
+ 				}
+ 			]
+ 		});
+@@ -1543,3 +1544,18 @@ registerAction2(class CustomizeLayoutAction extends Action2 {
+ 		quickPick.show();
+ 	}
+ });
++
++MenuRegistry.appendMenuItems([
++	{
++		id: MenuId.LayoutControlMenu,
++		item: {
++			group: 'z_end',
++			command: {
++				// eslint-disable-next-line local/code-no-unexternalized-strings
++				id: "workbench.action.toggleFullScreen",
++				title: localize('toggleFullScreen', "Toggle Full Screen"),
++				icon: fullscreenIcon,
++			},
++		}
++	}
++]);
+\ No newline at end of file
+-- 
+2.39.3 (Apple Git-146)
+

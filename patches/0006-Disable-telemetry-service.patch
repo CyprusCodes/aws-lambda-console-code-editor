@@ -1,0 +1,65 @@
+From 506c1743bbaab5a1a94278a739e3be96c546f92b Mon Sep 17 00:00:00 2001
+From: Shiwei Ge <>
+Date: Tue, 25 Jun 2024 13:41:29 -0700
+Subject: [PATCH] Disable telemetry service
+
+This patch disables the telemetry and crash reporting features in Code OSS for privacy or compliance reasons. By changing the default values and the endpoint URLs to a non-existent endpoint, the telemetry functionality is effectively disabled.
+---
+ src/vs/platform/telemetry/common/1dsAppender.ts           | 4 ++--
+ src/vs/platform/telemetry/common/telemetryService.ts      | 4 ++--
+ src/vs/workbench/electron-sandbox/desktop.contribution.ts | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/vs/platform/telemetry/common/1dsAppender.ts b/src/vs/platform/telemetry/common/1dsAppender.ts
+index c54187f..44ab1c6 100644
+--- a/src/vs/platform/telemetry/common/1dsAppender.ts
++++ b/src/vs/platform/telemetry/common/1dsAppender.ts
+@@ -18,8 +18,8 @@ export interface IAppInsightsCore {
+ 	unload(isAsync: boolean, unloadComplete: (unloadState: ITelemetryUnloadState) => void): void;
+ }
+ 
+-const endpointUrl = 'https://mobile.events.data.microsoft.com/OneCollector/1.0';
+-const endpointHealthUrl = 'https://mobile.events.data.microsoft.com/ping';
++const endpointUrl = 'https://0.0.0.0/OneCollector/1.0';
++const endpointHealthUrl = 'https://0.0.0.0/ping';
+ 
+ async function getClient(instrumentationKey: string, addInternalFlag?: boolean, xhrOverride?: IXHROverride): Promise<IAppInsightsCore> {
+ 	const oneDs = await importAMDNodeModule<typeof import('@microsoft/1ds-core-js')>('@microsoft/1ds-core-js', 'dist/ms.core.js');
+diff --git a/src/vs/platform/telemetry/common/telemetryService.ts b/src/vs/platform/telemetry/common/telemetryService.ts
+index a9a9cc4..7526d6b 100644
+--- a/src/vs/platform/telemetry/common/telemetryService.ts
++++ b/src/vs/platform/telemetry/common/telemetryService.ts
+@@ -214,7 +214,7 @@ Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerConfigurat
+ 				localize('telemetry.telemetryLevel.off', "Disables all product telemetry.")
+ 			],
+ 			'markdownDescription': getTelemetryLevelSettingDescription(),
+-			'default': TelemetryConfiguration.ON,
++			'default': TelemetryConfiguration.OFF,
+ 			'restricted': true,
+ 			'scope': ConfigurationScope.APPLICATION,
+ 			'tags': ['usesOnlineServices', 'telemetry']
+@@ -235,7 +235,7 @@ Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerConfigurat
+ 				!product.privacyStatementUrl ?
+ 					localize('telemetry.enableTelemetry', "Enable diagnostic data to be collected. This helps us to better understand how {0} is performing and where improvements need to be made.", product.nameLong) :
+ 					localize('telemetry.enableTelemetryMd', "Enable diagnostic data to be collected. This helps us to better understand how {0} is performing and where improvements need to be made. [Read more]({1}) about what we collect and our privacy statement.", product.nameLong, product.privacyStatementUrl),
+-			'default': true,
++			'default': false,
+ 			'restricted': true,
+ 			'markdownDeprecationMessage': localize('enableTelemetryDeprecated', "If this setting is false, no telemetry will be sent regardless of the new setting's value. Deprecated in favor of the {0} setting.", `\`#${TELEMETRY_SETTING_ID}#\``),
+ 			'scope': ConfigurationScope.APPLICATION,
+diff --git a/src/vs/workbench/electron-sandbox/desktop.contribution.ts b/src/vs/workbench/electron-sandbox/desktop.contribution.ts
+index f1e76e5..b9629e2 100644
+--- a/src/vs/workbench/electron-sandbox/desktop.contribution.ts
++++ b/src/vs/workbench/electron-sandbox/desktop.contribution.ts
+@@ -288,7 +288,7 @@ import { MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL } from 'vs/platform/window/electron-sand
+ 			'telemetry.enableCrashReporter': {
+ 				'type': 'boolean',
+ 				'description': localize('telemetry.enableCrashReporting', "Enable crash reports to be collected. This helps us improve stability. \nThis option requires restart to take effect."),
+-				'default': true,
++				'default': false,
+ 				'tags': ['usesOnlineServices', 'telemetry'],
+ 				'markdownDeprecationMessage': localize('enableCrashReporterDeprecated', "If this setting is false, no telemetry will be sent regardless of the new setting's value. Deprecated due to being combined into the {0} setting.", `\`#${TELEMETRY_SETTING_ID}#\``),
+ 			}
+-- 
+2.39.3 (Apple Git-146)
+

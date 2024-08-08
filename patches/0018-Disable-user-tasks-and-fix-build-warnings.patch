@@ -1,0 +1,402 @@
+From 68520ac52ad7b9636bfa572c91fabe3bc366f798 Mon Sep 17 00:00:00 2001
+From: Harsha Babu Tumkur Anand Shankar Babu <>
+Date: Wed, 31 Jul 2024 22:30:38 +0000
+Subject: [PATCH] Disable user tasks and fix build warnings
+
+This patch disables user-facing task-related functionality in the codebase.
+---
+ .../tasks/browser/task.contribution.ts        | 318 +++++++++---------
+ .../browser/configurationService.ts           |   1 -
+ 2 files changed, 159 insertions(+), 167 deletions(-)
+
+diff --git a/src/vs/workbench/contrib/tasks/browser/task.contribution.ts b/src/vs/workbench/contrib/tasks/browser/task.contribution.ts
+index a0d2bb5..08fd8c4 100644
+--- a/src/vs/workbench/contrib/tasks/browser/task.contribution.ts
++++ b/src/vs/workbench/contrib/tasks/browser/task.contribution.ts
+@@ -8,7 +8,7 @@ import * as nls from 'vs/nls';
+ import { Disposable } from 'vs/base/common/lifecycle';
+ import { Registry } from 'vs/platform/registry/common/platform';
+ import { LifecyclePhase } from 'vs/workbench/services/lifecycle/common/lifecycle';
+-import { MenuRegistry, MenuId, registerAction2 } from 'vs/platform/actions/common/actions';
++import { MenuRegistry, MenuId } from 'vs/platform/actions/common/actions';
+ 
+ import { ProblemMatcherRegistry } from 'vs/workbench/contrib/tasks/common/problemMatcher';
+ import { IProgressService, ProgressLocation } from 'vs/platform/progress/common/progress';
+@@ -20,22 +20,16 @@ import { StatusbarAlignment, IStatusbarService, IStatusbarEntryAccessor, IStatus
+ 
+ import { IOutputChannelRegistry, Extensions as OutputExt } from 'vs/workbench/services/output/common/output';
+ 
+-import { ITaskEvent, TaskEventKind, TaskGroup, TaskSettingId, TASKS_CATEGORY, TASK_RUNNING_STATE } from 'vs/workbench/contrib/tasks/common/tasks';
+-import { ITaskService, TaskCommandsRegistered, TaskExecutionSupportedContext } from 'vs/workbench/contrib/tasks/common/taskService';
++import { ITaskEvent, TaskEventKind, TaskGroup, TaskSettingId, TASK_RUNNING_STATE } from 'vs/workbench/contrib/tasks/common/tasks';
++import { ITaskService, TaskExecutionSupportedContext } from 'vs/workbench/contrib/tasks/common/taskService';
+ 
+ import { Extensions as WorkbenchExtensions, IWorkbenchContributionsRegistry, IWorkbenchContribution } from 'vs/workbench/common/contributions';
+-import { RunAutomaticTasks, ManageAutomaticTaskRunning } from 'vs/workbench/contrib/tasks/browser/runAutomaticTasks';
+-import { KeybindingsRegistry, KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegistry';
+-import { KeyMod, KeyCode } from 'vs/base/common/keyCodes';
++import { RunAutomaticTasks } from 'vs/workbench/contrib/tasks/browser/runAutomaticTasks';
+ import schemaVersion1 from '../common/jsonSchema_v1';
+ import schemaVersion2, { updateProblemMatchers, updateTaskDefinitions } from '../common/jsonSchema_v2';
+-import { AbstractTaskService, ConfigureTaskAction } from 'vs/workbench/contrib/tasks/browser/abstractTaskService';
++import { AbstractTaskService } from 'vs/workbench/contrib/tasks/browser/abstractTaskService';
+ import { tasksSchemaId } from 'vs/workbench/services/configuration/common/configuration';
+ import { Extensions as ConfigurationExtensions, IConfigurationRegistry } from 'vs/platform/configuration/common/configurationRegistry';
+-import { WorkbenchStateContext } from 'vs/workbench/common/contextkeys';
+-import { IQuickAccessRegistry, Extensions as QuickAccessExtensions } from 'vs/platform/quickinput/common/quickAccess';
+-import { TasksQuickAccessProvider } from 'vs/workbench/contrib/tasks/browser/tasksQuickAccess';
+-import { ContextKeyExpr } from 'vs/platform/contextkey/common/contextkey';
+ import { TaskDefinitionRegistry } from 'vs/workbench/contrib/tasks/common/taskDefinitionRegistry';
+ import { TerminalMenuBarGroup } from 'vs/workbench/contrib/terminal/browser/terminalMenus';
+ import { isString } from 'vs/base/common/types';
+@@ -44,15 +38,15 @@ import { promiseWithResolvers } from 'vs/base/common/async';
+ const workbenchRegistry = Registry.as<IWorkbenchContributionsRegistry>(WorkbenchExtensions.Workbench);
+ workbenchRegistry.registerWorkbenchContribution(RunAutomaticTasks, LifecyclePhase.Eventually);
+ 
+-registerAction2(ManageAutomaticTaskRunning);
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: ManageAutomaticTaskRunning.ID,
+-		title: ManageAutomaticTaskRunning.LABEL,
+-		category: TASKS_CATEGORY
+-	},
+-	when: TaskExecutionSupportedContext
+-});
++// registerAction2(ManageAutomaticTaskRunning);
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: ManageAutomaticTaskRunning.ID,
++// 		title: ManageAutomaticTaskRunning.LABEL,
++// 		category: TASKS_CATEGORY
++// 	},
++// 	when: TaskExecutionSupportedContext
++// });
+ 
+ export class TaskStatusBarContributions extends Disposable implements IWorkbenchContribution {
+ 	private _runningTasksStatusItem: IStatusbarEntryAccessor | undefined;
+@@ -234,151 +228,151 @@ MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
+ });
+ 
+ 
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: 'workbench.action.tasks.openWorkspaceFileTasks',
+-		title: nls.localize2('workbench.action.tasks.openWorkspaceFileTasks', "Open Workspace Tasks"),
+-		category: TASKS_CATEGORY
+-	},
+-	when: ContextKeyExpr.and(WorkbenchStateContext.isEqualTo('workspace'), TaskExecutionSupportedContext)
+-});
+-
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: ConfigureTaskAction.ID,
+-		title: ConfigureTaskAction.TEXT,
+-		category: TASKS_CATEGORY
+-	},
+-	when: TaskExecutionSupportedContext
+-});
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: 'workbench.action.tasks.showLog',
+-		title: nls.localize2('ShowLogAction.label', "Show Task Log"),
+-		category: TASKS_CATEGORY
+-	},
+-	when: TaskExecutionSupportedContext
+-});
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: 'workbench.action.tasks.runTask',
+-		title: nls.localize2('RunTaskAction.label', "Run Task"),
+-		category: TASKS_CATEGORY
+-	}
+-});
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: 'workbench.action.tasks.reRunTask',
+-		title: nls.localize2('ReRunTaskAction.label', "Rerun Last Task"),
+-		category: TASKS_CATEGORY
+-	},
+-	when: TaskExecutionSupportedContext
+-});
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: 'workbench.action.tasks.restartTask',
+-		title: nls.localize2('RestartTaskAction.label', "Restart Running Task"),
+-		category: TASKS_CATEGORY
+-	},
+-	when: TaskExecutionSupportedContext
+-});
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: 'workbench.action.tasks.showTasks',
+-		title: nls.localize2('ShowTasksAction.label', "Show Running Tasks"),
+-		category: TASKS_CATEGORY
+-	},
+-	when: TaskExecutionSupportedContext
+-});
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: 'workbench.action.tasks.terminate',
+-		title: nls.localize2('TerminateAction.label', "Terminate Task"),
+-		category: TASKS_CATEGORY
+-	},
+-	when: TaskExecutionSupportedContext
+-});
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: 'workbench.action.tasks.build',
+-		title: nls.localize2('BuildAction.label', "Run Build Task"),
+-		category: TASKS_CATEGORY
+-	},
+-	when: TaskExecutionSupportedContext
+-});
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: 'workbench.action.tasks.test',
+-		title: nls.localize2('TestAction.label', "Run Test Task"),
+-		category: TASKS_CATEGORY
+-	},
+-	when: TaskExecutionSupportedContext
+-});
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: 'workbench.action.tasks.configureDefaultBuildTask',
+-		title: nls.localize2('ConfigureDefaultBuildTask.label', "Configure Default Build Task"),
+-		category: TASKS_CATEGORY
+-	},
+-	when: TaskExecutionSupportedContext
+-});
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: 'workbench.action.tasks.configureDefaultTestTask',
+-		title: nls.localize2('ConfigureDefaultTestTask.label', "Configure Default Test Task"),
+-		category: TASKS_CATEGORY
+-	},
+-	when: TaskExecutionSupportedContext
+-});
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: 'workbench.action.tasks.openUserTasks',
+-		title: nls.localize2('workbench.action.tasks.openUserTasks', "Open User Tasks"), category: TASKS_CATEGORY
+-	},
+-	when: TaskExecutionSupportedContext
+-});
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: 'workbench.action.tasks.openWorkspaceFileTasks',
++// 		title: nls.localize2('workbench.action.tasks.openWorkspaceFileTasks', "Open Workspace Tasks"),
++// 		category: TASKS_CATEGORY
++// 	},
++// 	when: ContextKeyExpr.and(WorkbenchStateContext.isEqualTo('workspace'), TaskExecutionSupportedContext)
++// });
++
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: ConfigureTaskAction.ID,
++// 		title: ConfigureTaskAction.TEXT,
++// 		category: TASKS_CATEGORY
++// 	},
++// 	when: TaskExecutionSupportedContext
++// });
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: 'workbench.action.tasks.showLog',
++// 		title: nls.localize2('ShowLogAction.label', "Show Task Log"),
++// 		category: TASKS_CATEGORY
++// 	},
++// 	when: TaskExecutionSupportedContext
++// });
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: 'workbench.action.tasks.runTask',
++// 		title: nls.localize2('RunTaskAction.label', "Run Task"),
++// 		category: TASKS_CATEGORY
++// 	}
++// });
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: 'workbench.action.tasks.reRunTask',
++// 		title: nls.localize2('ReRunTaskAction.label', "Rerun Last Task"),
++// 		category: TASKS_CATEGORY
++// 	},
++// 	when: TaskExecutionSupportedContext
++// });
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: 'workbench.action.tasks.restartTask',
++// 		title: nls.localize2('RestartTaskAction.label', "Restart Running Task"),
++// 		category: TASKS_CATEGORY
++// 	},
++// 	when: TaskExecutionSupportedContext
++// });
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: 'workbench.action.tasks.showTasks',
++// 		title: nls.localize2('ShowTasksAction.label', "Show Running Tasks"),
++// 		category: TASKS_CATEGORY
++// 	},
++// 	when: TaskExecutionSupportedContext
++// });
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: 'workbench.action.tasks.terminate',
++// 		title: nls.localize2('TerminateAction.label', "Terminate Task"),
++// 		category: TASKS_CATEGORY
++// 	},
++// 	when: TaskExecutionSupportedContext
++// });
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: 'workbench.action.tasks.build',
++// 		title: nls.localize2('BuildAction.label', "Run Build Task"),
++// 		category: TASKS_CATEGORY
++// 	},
++// 	when: TaskExecutionSupportedContext
++// });
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: 'workbench.action.tasks.test',
++// 		title: nls.localize2('TestAction.label', "Run Test Task"),
++// 		category: TASKS_CATEGORY
++// 	},
++// 	when: TaskExecutionSupportedContext
++// });
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: 'workbench.action.tasks.configureDefaultBuildTask',
++// 		title: nls.localize2('ConfigureDefaultBuildTask.label', "Configure Default Build Task"),
++// 		category: TASKS_CATEGORY
++// 	},
++// 	when: TaskExecutionSupportedContext
++// });
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: 'workbench.action.tasks.configureDefaultTestTask',
++// 		title: nls.localize2('ConfigureDefaultTestTask.label', "Configure Default Test Task"),
++// 		category: TASKS_CATEGORY
++// 	},
++// 	when: TaskExecutionSupportedContext
++// });
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: 'workbench.action.tasks.openUserTasks',
++// 		title: nls.localize2('workbench.action.tasks.openUserTasks', "Open User Tasks"), category: TASKS_CATEGORY
++// 	},
++// 	when: TaskExecutionSupportedContext
++// });
+ 
+ class UserTasksGlobalActionContribution extends Disposable implements IWorkbenchContribution {
+ 
+ 	constructor() {
+ 		super();
+-		this.registerActions();
++		// this.registerActions();
+ 	}
+ 
+-	private registerActions() {
+-		const id = 'workbench.action.tasks.openUserTasks';
+-		const title = nls.localize('userTasks', "User Tasks");
+-		this._register(MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
+-			command: {
+-				id,
+-				title
+-			},
+-			when: TaskExecutionSupportedContext,
+-			group: '2_configuration',
+-			order: 6
+-		}));
+-		this._register(MenuRegistry.appendMenuItem(MenuId.MenubarPreferencesMenu, {
+-			command: {
+-				id,
+-				title
+-			},
+-			when: TaskExecutionSupportedContext,
+-			group: '2_configuration',
+-			order: 6
+-		}));
+-	}
++	// private registerActions() {
++	// 	const id = 'workbench.action.tasks.openUserTasks';
++	// 	const title = nls.localize('userTasks', "User Tasks");
++	// 	this._register(MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
++	// 		command: {
++	// 			id,
++	// 			title
++	// 		},
++	// 		when: TaskExecutionSupportedContext,
++	// 		group: '2_configuration',
++	// 		order: 6
++	// 	}));
++	// 	this._register(MenuRegistry.appendMenuItem(MenuId.MenubarPreferencesMenu, {
++	// 		command: {
++	// 			id,
++	// 			title
++	// 		},
++	// 		when: TaskExecutionSupportedContext,
++	// 		group: '2_configuration',
++	// 		order: 6
++	// 	}));
++	// }
+ }
+ workbenchRegistry.registerWorkbenchContribution(UserTasksGlobalActionContribution, LifecyclePhase.Restored);
+ 
+ // MenuRegistry.addCommand( { id: 'workbench.action.tasks.rebuild', title: nls.localize('RebuildAction.label', 'Run Rebuild Task'), category: tasksCategory });
+ // MenuRegistry.addCommand( { id: 'workbench.action.tasks.clean', title: nls.localize('CleanAction.label', 'Run Clean Task'), category: tasksCategory });
+ 
+-KeybindingsRegistry.registerKeybindingRule({
+-	id: 'workbench.action.tasks.build',
+-	weight: KeybindingWeight.WorkbenchContrib,
+-	when: TaskCommandsRegistered,
+-	primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyB
+-});
++// KeybindingsRegistry.registerKeybindingRule({
++// 	id: 'workbench.action.tasks.build',
++// 	weight: KeybindingWeight.WorkbenchContrib,
++// 	when: TaskCommandsRegistered,
++// 	primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyB
++// });
+ 
+ // Tasks Output channel. Register it before using it in Task Service.
+ const outputChannelRegistry = Registry.as<IOutputChannelRegistry>(OutputExt.OutputChannels);
+@@ -386,16 +380,16 @@ outputChannelRegistry.registerChannel({ id: AbstractTaskService.OutputChannelId,
+ 
+ 
+ // Register Quick Access
+-const quickAccessRegistry = (Registry.as<IQuickAccessRegistry>(QuickAccessExtensions.Quickaccess));
+-const tasksPickerContextKey = 'inTasksPicker';
+-
+-quickAccessRegistry.registerQuickAccessProvider({
+-	ctor: TasksQuickAccessProvider,
+-	prefix: TasksQuickAccessProvider.PREFIX,
+-	contextKey: tasksPickerContextKey,
+-	placeholder: nls.localize('tasksQuickAccessPlaceholder', "Type the name of a task to run."),
+-	helpEntries: [{ description: nls.localize('tasksQuickAccessHelp', "Run Task"), commandCenterOrder: 60 }]
+-});
++// const quickAccessRegistry = (Registry.as<IQuickAccessRegistry>(QuickAccessExtensions.Quickaccess));
++// const tasksPickerContextKey = 'inTasksPicker';
++
++// quickAccessRegistry.registerQuickAccessProvider({
++// 	ctor: TasksQuickAccessProvider,
++// 	prefix: TasksQuickAccessProvider.PREFIX,
++// 	contextKey: tasksPickerContextKey,
++// 	placeholder: nls.localize('tasksQuickAccessPlaceholder', "Type the name of a task to run."),
++// 	helpEntries: [{ description: nls.localize('tasksQuickAccessHelp', "Run Task"), commandCenterOrder: 60 }]
++// });
+ 
+ // tasks.json validation
+ const schema: IJSONSchema = {
+diff --git a/src/vs/workbench/services/configuration/browser/configurationService.ts b/src/vs/workbench/services/configuration/browser/configurationService.ts
+index 40ce845..48937b3 100644
+--- a/src/vs/workbench/services/configuration/browser/configurationService.ts
++++ b/src/vs/workbench/services/configuration/browser/configurationService.ts
+@@ -30,7 +30,6 @@ import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/
+ import { IWorkbenchContribution, IWorkbenchContributionsRegistry, WorkbenchPhase, Extensions as WorkbenchExtensions, registerWorkbenchContribution2 } from 'vs/workbench/common/contributions';
+ import { ILifecycleService, LifecyclePhase } from 'vs/workbench/services/lifecycle/common/lifecycle';
+ import { ILogService } from 'vs/platform/log/common/log';
+-import { toErrorMessage } from 'vs/base/common/errorMessage';
+ import { IUriIdentityService } from 'vs/platform/uriIdentity/common/uriIdentity';
+ import { IWorkspaceTrustManagementService } from 'vs/platform/workspace/common/workspaceTrust';
+ import { delta, distinct, equals as arrayEquals } from 'vs/base/common/arrays';
+-- 
+2.40.1
+

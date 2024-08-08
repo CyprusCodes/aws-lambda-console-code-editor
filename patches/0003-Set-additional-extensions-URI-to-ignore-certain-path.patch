@@ -1,0 +1,26 @@
+From a8b02ac791e6f8612e8e324a4d288fda34cc6f24 Mon Sep 17 00:00:00 2001
+From: Shiwei Ge <>
+Date: Thu, 6 Jun 2024 12:00:09 -0700
+Subject: [PATCH] Set additional extensions URI to ignore certain pathname
+
+This patch updates the additional built-in extensions configuration to correctly construct the path for extensions starting with 'bundled:'. It removes the /index.html part from the URL path to ensure the extensions are properly loaded.
+---
+ src/vs/code/browser/workbench/workbench.ts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
+index 53a7a232ddf..3086125790a 100644
+--- a/src/vs/code/browser/workbench/workbench.ts
++++ b/src/vs/code/browser/workbench/workbench.ts
+@@ -27,7 +27,7 @@ declare const window: any;
+     tempConfig.additionalBuiltinExtensions = config.additionalBuiltinExtensions
+       .map((ext) => {
+         if (typeof ext === 'string' && ext.startsWith('bundled:')) {
+-          return { scheme: window.location.protocol.slice(0, -1), path: window.location.pathname + ext.split(':')[1] };
++          return { scheme: window.location.protocol.slice(0, -1), path: window.location.pathname.replace('/index.html','/') + ext.split(':')[1] };
+         }
+         return ext;
+       })
+-- 
+2.39.3 (Apple Git-146)
+

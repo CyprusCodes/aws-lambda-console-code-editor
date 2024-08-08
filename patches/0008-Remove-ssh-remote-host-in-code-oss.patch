@@ -1,0 +1,33 @@
+From 982a5c06b2796c9af839236f4e32ffed7c6b20e6 Mon Sep 17 00:00:00 2001
+From: Shiwei Ge <>
+Date: Wed, 3 Jul 2024 14:38:43 -0700
+Subject: [PATCH] Remove ssh remote host in code-oss
+
+SSH remote host connections are not supported in the light-weight web version. This patch removes the remote status indicator functionality from Code OSS so that the status of a remote connection (e.g., SSH connection) would not show in the status bar.
+---
+ src/vs/workbench/contrib/remote/browser/remote.contribution.ts | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/vs/workbench/contrib/remote/browser/remote.contribution.ts b/src/vs/workbench/contrib/remote/browser/remote.contribution.ts
+index 4689c81..b1fc85f 100644
+--- a/src/vs/workbench/contrib/remote/browser/remote.contribution.ts
++++ b/src/vs/workbench/contrib/remote/browser/remote.contribution.ts
+@@ -9,7 +9,6 @@ import { ShowCandidateContribution } from 'vs/workbench/contrib/remote/browser/s
+ import { LifecyclePhase } from 'vs/workbench/services/lifecycle/common/lifecycle';
+ import { TunnelFactoryContribution } from 'vs/workbench/contrib/remote/browser/tunnelFactory';
+ import { RemoteAgentConnectionStatusListener, RemoteMarkers } from 'vs/workbench/contrib/remote/browser/remote';
+-import { RemoteStatusIndicator } from 'vs/workbench/contrib/remote/browser/remoteIndicator';
+ import { AutomaticPortForwarding, ForwardedPortsView, PortRestore } from 'vs/workbench/contrib/remote/browser/remoteExplorer';
+ import { InitialRemoteConnectionHealthContribution } from 'vs/workbench/contrib/remote/browser/remoteConnectionHealth';
+ 
+@@ -17,7 +16,6 @@ const workbenchContributionsRegistry = Registry.as<IWorkbenchContributionsRegist
+ registerWorkbenchContribution2(ShowCandidateContribution.ID, ShowCandidateContribution, WorkbenchPhase.BlockRestore);
+ registerWorkbenchContribution2(TunnelFactoryContribution.ID, TunnelFactoryContribution, WorkbenchPhase.BlockRestore);
+ workbenchContributionsRegistry.registerWorkbenchContribution(RemoteAgentConnectionStatusListener, LifecyclePhase.Eventually);
+-registerWorkbenchContribution2(RemoteStatusIndicator.ID, RemoteStatusIndicator, WorkbenchPhase.BlockStartup);
+ workbenchContributionsRegistry.registerWorkbenchContribution(ForwardedPortsView, LifecyclePhase.Restored);
+ workbenchContributionsRegistry.registerWorkbenchContribution(PortRestore, LifecyclePhase.Eventually);
+ workbenchContributionsRegistry.registerWorkbenchContribution(AutomaticPortForwarding, LifecyclePhase.Eventually);
+-- 
+2.39.3 (Apple Git-146)
+

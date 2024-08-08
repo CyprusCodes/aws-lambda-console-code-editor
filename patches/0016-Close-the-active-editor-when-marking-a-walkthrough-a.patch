@@ -1,0 +1,27 @@
+From ecc10d8b2bf4aa18bcb9e7c2d12f475b898cd7f6 Mon Sep 17 00:00:00 2001
+From: Keen Wilson <>
+Date: Tue, 30 Jul 2024 05:09:27 +0000
+Subject: [PATCH] Close the active editor when marking a walkthrough as done
+
+This patch changes the behavior of the "GettingStartedPage" class in Code OSS to close the active editor when the user marks a walkthrough as done, based on UX feedback.
+---
+ .../contrib/welcomeGettingStarted/browser/gettingStarted.ts    | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts b/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts
+index a73549a..3713347 100644
+--- a/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts
++++ b/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts
+@@ -479,7 +479,8 @@ export class GettingStartedPage extends EditorPane {
+ 				}
+ 			});
+ 			this.hideCategory(this.currentWalkthrough?.id);
+-			this.scrollPrev();
++			// Feedback from UX, close the walkthrough when clicking mark done
++			this.commandService.executeCommand('workbench.action.closeActiveEditor');
+ 		} else {
+ 			throw Error('No walkthrough opened');
+ 		}
+-- 
+2.40.1
+
