@@ -1,0 +1,41 @@
+From afebc4e7273ad3dfd615a00a8f2f8799f8ade7e1 Mon Sep 17 00:00:00 2001
+From: Shiwei Ge <>
+Date: Tue, 3 Sep 2024 20:21:57 -0700
+Subject: [PATCH] emit load time metrics
+
+---
+ src/vs/code/browser/workbench/workbench.ts | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
+index 30c0de9..cc8fbe1 100644
+--- a/src/vs/code/browser/workbench/workbench.ts
++++ b/src/vs/code/browser/workbench/workbench.ts
+@@ -9,8 +9,10 @@ import type { IWorkbenchConstructionOptions, IWorkspace, IWorkspaceProvider } fr
+ import { create } from 'vs/workbench/workbench.web.main';
+ 
+ declare const window: any;
++const MESSAGE_TYPE = 'application/x-cloud9-lite-v2+json';
+ 
+ (async function () {
++	const start = Date.now();
+   let config: IWorkbenchConstructionOptions & {
+     folderUri?: UriComponents;
+     workspaceUri?: UriComponents;
+@@ -69,4 +71,13 @@ declare const window: any;
+ 
+   const domElement = !!config.domElementId && document.getElementById(config.domElementId) || document.body;
+   create(domElement, config);
++	const totalLoadTime = Date.now() - start;
++  const origin =/origin=([^&?#=]+)|$/.exec(mainWindow.location.search)?.[1];
++	if(origin) {
++		mainWindow.parent.postMessage({
++			channel: 'vscode.metrics',
++			type: MESSAGE_TYPE,
++			value: ['submitCustomTimer', 'ideLoad', totalLoadTime]
++		}, origin);
++	}
+ })();
+-- 
+2.39.3 (Apple Git-146)
+

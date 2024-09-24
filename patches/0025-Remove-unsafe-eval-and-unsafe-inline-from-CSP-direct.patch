@@ -1,0 +1,83 @@
+From 7f44fbe6bb637253416629a619c337d978431dfd Mon Sep 17 00:00:00 2001
+From: Keen Wilson <>
+Date: Sat, 24 Aug 2024 20:24:32 +0000
+Subject: [PATCH] Remove unsafe-eval and unsafe-inline from CSP directives
+
+---
+ src/vs/server/node/webClientServer.ts                       | 6 +++---
+ .../notebook/browser/view/renderers/backLayerWebView.ts     | 4 ++--
+ src/vs/workbench/contrib/webview/browser/pre/index.html     | 2 +-
+ .../extensions/worker/webWorkerExtensionHostIframe.html     | 2 +-
+ 4 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/vs/server/node/webClientServer.ts b/src/vs/server/node/webClientServer.ts
+index f0c43c6..5114d8d 100644
+--- a/src/vs/server/node/webClientServer.ts
++++ b/src/vs/server/node/webClientServer.ts
+@@ -370,11 +370,11 @@ export class WebClientServer {
+ 			'default-src \'self\';',
+ 			'img-src \'self\' https: data: blob:;',
+ 			'media-src \'self\';',
+-			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} '${webWorkerExtensionHostIframeScriptSHA}' ${useTestResolver ? '' : `http://${remoteAuthority}`};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
++			`script-src 'self' ${this._getScriptCspHashes(data).join(' ')} '${webWorkerExtensionHostIframeScriptSHA}' ${useTestResolver ? '' : `http://${remoteAuthority}`};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
+ 			'child-src \'self\';',
+ 			`frame-src 'self' https://*.vscode-cdn.net data:;`,
+ 			'worker-src \'self\' data: blob:;',
+-			'style-src \'self\' \'unsafe-inline\';',
++			'style-src \'self\';',
+ 			'connect-src \'self\' ws: wss: https:;',
+ 			'font-src \'self\' blob:;',
+ 			'manifest-src \'self\';'
+@@ -432,7 +432,7 @@ export class WebClientServer {
+ 			'img-src \'self\' https: data: blob:;',
+ 			'media-src \'none\';',
+ 			`script-src 'self' ${this._getScriptCspHashes(data).join(' ')};`,
+-			'style-src \'self\' \'unsafe-inline\';',
++			'style-src \'self\';',
+ 			'font-src \'self\' blob:;'
+ 		].join(' ');
+ 
+diff --git a/src/vs/workbench/contrib/notebook/browser/view/renderers/backLayerWebView.ts b/src/vs/workbench/contrib/notebook/browser/view/renderers/backLayerWebView.ts
+index 315c68a..53945da 100644
+--- a/src/vs/workbench/contrib/notebook/browser/view/renderers/backLayerWebView.ts
++++ b/src/vs/workbench/contrib/notebook/browser/view/renderers/backLayerWebView.ts
+@@ -312,8 +312,8 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
+ 				${enableCsp ?
+ 				`<meta http-equiv="Content-Security-Policy" content="
+ 					default-src 'none';
+-					script-src ${webviewGenericCspSource} 'unsafe-inline' 'unsafe-eval';
+-					style-src ${webviewGenericCspSource} 'unsafe-inline';
++					script-src ${webviewGenericCspSource};
++					style-src ${webviewGenericCspSource};
+ 					img-src ${webviewGenericCspSource} https: http: data:;
+ 					font-src ${webviewGenericCspSource} https:;
+ 					connect-src https:;
+diff --git a/src/vs/workbench/contrib/webview/browser/pre/index.html b/src/vs/workbench/contrib/webview/browser/pre/index.html
+index 379e25e..02d8a8a 100644
+--- a/src/vs/workbench/contrib/webview/browser/pre/index.html
++++ b/src/vs/workbench/contrib/webview/browser/pre/index.html
+@@ -5,7 +5,7 @@
+ 	<meta charset="UTF-8">
+ 
+ 	<meta http-equiv="Content-Security-Policy"
+-		content="default-src 'none'; script-src 'sha256-bQPwjO6bLiyf6v9eDVtAI67LrfonA1w49aFkRXBy4/g=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
++		content="default-src 'none'; script-src 'sha256-bQPwjO6bLiyf6v9eDVtAI67LrfonA1w49aFkRXBy4/g=' 'self'; frame-src 'self';">
+ 
+ 	<!-- Disable pinch zooming -->
+ 	<meta name="viewport"
+diff --git a/src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html b/src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
+index 6a16dd1..184df3f 100644
+--- a/src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
++++ b/src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
+@@ -4,7 +4,7 @@
+ 		<meta http-equiv="Content-Security-Policy" content="
+ 			default-src 'none';
+ 			child-src 'self' data: blob:;
+-			script-src 'self' 'unsafe-eval' 'sha256-75NYUUvf+5++1WbfCZOV3PSWxBhONpaxwx+mkOFRv/Y=' https:;
++			script-src 'self' 'sha256-75NYUUvf+5++1WbfCZOV3PSWxBhONpaxwx+mkOFRv/Y=' https:;
+ 			connect-src 'self' https: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*;"/>
+ 	</head>
+ 	<body>
+-- 
+2.40.1
+

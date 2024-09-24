@@ -1,0 +1,68 @@
+From 109fdb81c0d2dd4d25195af32d9aa2f0871f87ca Mon Sep 17 00:00:00 2001
+From: Harsha Babu Tumkur Anand Shankar Babu <>
+Date: Wed, 11 Sep 2024 23:12:28 +0000
+Subject: [PATCH] Update contents of trusted domain
+
+---
+ .../trustedDomainsFileSystemProvider.ts       | 28 +++++++++++--------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
+
+diff --git a/src/vs/workbench/contrib/url/browser/trustedDomainsFileSystemProvider.ts b/src/vs/workbench/contrib/url/browser/trustedDomainsFileSystemProvider.ts
+index c5c2258..99ddc36 100644
+--- a/src/vs/workbench/contrib/url/browser/trustedDomainsFileSystemProvider.ts
++++ b/src/vs/workbench/contrib/url/browser/trustedDomainsFileSystemProvider.ts
+@@ -26,14 +26,14 @@ const TRUSTED_DOMAINS_STAT: IStat = {
+ 
+ const CONFIG_HELP_TEXT_PRE = `// Links matching one or more entries in the list below can be opened without link protection.
+ // The following examples show what entries can look like:
+-// - "https://microsoft.com": Matches this specific domain using https
+-// - "https://microsoft.com:8080": Matches this specific domain on this port using https
+-// - "https://microsoft.com:*": Matches this specific domain on any port using https
+-// - "https://microsoft.com/foo": Matches https://microsoft.com/foo and https://microsoft.com/foo/bar,
+-//   but not https://microsoft.com/foobar or https://microsoft.com/bar
+-// - "https://*.microsoft.com": Match all domains ending in "microsoft.com" using https
+-// - "microsoft.com": Match this specific domain using either http or https
+-// - "*.microsoft.com": Match all domains ending in "microsoft.com" using either http or https
++// - "https://amazon.com": Matches this specific domain using https
++// - "https://amazon.com:8080": Matches this specific domain on this port using https
++// - "https://amazon.com:*": Matches this specific domain on any port using https
++// - "https://amazon.com/foo": Matches https://amazon.com/foo and https://amazon.com/foo/bar,
++//   but not https://amazon.com/foobar or https://amazon.com/bar
++// - "https://*.amazon.com": Match all domains ending in "amazon.com" using https
++// - "amazon.com": Match this specific domain using either http or https
++// - "*.amazon.com": Match all domains ending in "amazon.com" using either http or https
+ // - "http://192.168.0.1: Matches this specific IP using http
+ // - "http://192.168.0.*: Matches all IP's with this prefix using http
+ // - "*": Match all domains using either http or https
+@@ -46,19 +46,25 @@ const CONFIG_HELP_TEXT_AFTER = `//
+ `;
+ 
+ const CONFIG_PLACEHOLDER_TEXT = `[
+-	// "https://microsoft.com"
++	// "https://docs.aws.amazon.com",
++	// "https://docs.amazonaws.cn",
++	// "https://dcaprod.www.docs.aws.a2z.com",
++	// "https://lckprod.www.docs.aws.a2z.com",
++	// "https://console.aws.amazon.com",
++	// "https://console.amazonaws-us-gov.com",
++	// "https://console.amazonaws.cn",
+ ]`;
+ 
+ function computeTrustedDomainContent(defaultTrustedDomains: string[], trustedDomains: string[], userTrustedDomains: string[], workspaceTrustedDomains: string[], configuring?: string) {
+ 	let content = CONFIG_HELP_TEXT_PRE;
+ 
+ 	if (defaultTrustedDomains.length > 0) {
+-		content += `// By default, VS Code trusts "localhost" as well as the following domains:\n`;
++		content += `// By default, Lambda VS Code trusts "localhost" as well as the following domains:\n`;
+ 		defaultTrustedDomains.forEach(d => {
+ 			content += `// - "${d}"\n`;
+ 		});
+ 	} else {
+-		content += `// By default, VS Code trusts "localhost".\n`;
++		content += `// By default, Lambda VS Code trusts "localhost".\n`;
+ 	}
+ 
+ 	if (userTrustedDomains.length) {
+-- 
+2.40.1
+

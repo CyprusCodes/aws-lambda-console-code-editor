@@ -1,0 +1,36 @@
+From 1f68085a39c4733f7f6ee309efb6eb55f1e0f674 Mon Sep 17 00:00:00 2001
+From: Tianbo Wang <>
+Date: Fri, 23 Aug 2024 21:03:50 +0000
+Subject: [PATCH] Add custom cache to scanUserExtensions in reducing of
+ excessive extension fetch requests
+
+---
+ .../browser/webExtensionsScannerService.ts                   | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts b/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts
+index 1618b7a..31af1d0 100644
+--- a/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts
++++ b/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts
+@@ -100,6 +100,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
+ 	private readonly customBuiltinExtensionsCacheResource: URI | undefined = undefined;
+ 	private readonly resourcesAccessQueueMap = new ResourceMap<Queue<IWebExtension[]>>();
+ 	private readonly injectedExtensions: string [] = ['vscodevim.vim', 'ms-vscode.sublime-keybindings','tuttieee.emacs-mcx'];
++	private customBuiltinExtensionsCache: IScannedExtension[] | null = null;
+ 	constructor(
+ 		@IBrowserWorkbenchEnvironmentService private readonly environmentService: IBrowserWorkbenchEnvironmentService,
+ 		@IBuiltinExtensionsScannerService private readonly builtinExtensionsScannerService: IBuiltinExtensionsScannerService,
+@@ -473,7 +474,9 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
+ 		const extensions = new Map<string, IScannedExtension>();
+ 
+ 		// Custom builtin extensions defined through `additionalBuiltinExtensions` API
+-		const customBuiltinExtensions = await this.readCustomBuiltinExtensions(scanOptions);
++		const customBuiltinExtensions = this.customBuiltinExtensionsCache || await this.readCustomBuiltinExtensions(scanOptions);
++		// Set custom cache https://issues.amazon.com/issues/LambdaConsole-16657
++		if (!this.customBuiltinExtensionsCache) this.customBuiltinExtensionsCache = customBuiltinExtensions;
+ 		for (const extension of customBuiltinExtensions) {
+ 			extensions.set(extension.identifier.id.toLowerCase(), extension);
+ 		}
+-- 
+2.40.1
+

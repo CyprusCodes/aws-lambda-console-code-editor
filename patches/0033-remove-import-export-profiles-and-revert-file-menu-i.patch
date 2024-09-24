@@ -1,0 +1,300 @@
+From d77ca610b3d83f408a855a3723a9ba263ca8266b Mon Sep 17 00:00:00 2001
+From: Shiwei Ge <>
+Date: Fri, 20 Sep 2024 15:19:01 -0700
+Subject: [PATCH] remove import/export profiles and revert file menu items in
+ file menu
+
+---
+ .../files/browser/fileActions.contribution.ts |  45 +----
+ .../browser/userDataProfile.ts                | 162 +-----------------
+ 2 files changed, 4 insertions(+), 203 deletions(-)
+
+diff --git a/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts b/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
+index 06dad7e..05ffbe8 100644
+--- a/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
++++ b/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
+@@ -10,7 +10,7 @@ import { MenuId, MenuRegistry, registerAction2 } from 'vs/platform/actions/commo
+ import { ICommandAction } from 'vs/platform/action/common/action';
+ import { KeyMod, KeyCode } from 'vs/base/common/keyCodes';
+ import { openWindowCommand, newWindowCommand } from 'vs/workbench/contrib/files/browser/fileCommands';
+-import { COPY_PATH_COMMAND_ID, REVEAL_IN_EXPLORER_COMMAND_ID, OPEN_TO_SIDE_COMMAND_ID, REVERT_FILE_COMMAND_ID, SAVE_FILE_COMMAND_ID, SAVE_FILE_LABEL, SAVE_FILE_AS_COMMAND_ID, SAVE_FILE_AS_LABEL, SAVE_ALL_IN_GROUP_COMMAND_ID, OpenEditorsGroupContext, COMPARE_WITH_SAVED_COMMAND_ID, COMPARE_RESOURCE_COMMAND_ID, SELECT_FOR_COMPARE_COMMAND_ID, ResourceSelectedForCompareContext, OpenEditorsDirtyEditorContext, COMPARE_SELECTED_COMMAND_ID, REMOVE_ROOT_FOLDER_COMMAND_ID, REMOVE_ROOT_FOLDER_LABEL, SAVE_FILES_COMMAND_ID, COPY_RELATIVE_PATH_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_LABEL, OpenEditorsReadonlyEditorContext, OPEN_WITH_EXPLORER_COMMAND_ID, NEW_UNTITLED_FILE_COMMAND_ID, NEW_UNTITLED_FILE_LABEL } from 'vs/workbench/contrib/files/browser/fileConstants';
++import { COPY_PATH_COMMAND_ID, REVEAL_IN_EXPLORER_COMMAND_ID, OPEN_TO_SIDE_COMMAND_ID, SAVE_FILE_COMMAND_ID, SAVE_FILE_LABEL, SAVE_FILE_AS_COMMAND_ID, SAVE_FILE_AS_LABEL, SAVE_ALL_IN_GROUP_COMMAND_ID, OpenEditorsGroupContext, COMPARE_WITH_SAVED_COMMAND_ID, COMPARE_RESOURCE_COMMAND_ID, SELECT_FOR_COMPARE_COMMAND_ID, ResourceSelectedForCompareContext, OpenEditorsDirtyEditorContext, COMPARE_SELECTED_COMMAND_ID, REMOVE_ROOT_FOLDER_COMMAND_ID, REMOVE_ROOT_FOLDER_LABEL, SAVE_FILES_COMMAND_ID, COPY_RELATIVE_PATH_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_LABEL, OpenEditorsReadonlyEditorContext, OPEN_WITH_EXPLORER_COMMAND_ID, NEW_UNTITLED_FILE_COMMAND_ID, NEW_UNTITLED_FILE_LABEL } from 'vs/workbench/contrib/files/browser/fileConstants';
+ import { CommandsRegistry, ICommandHandler } from 'vs/platform/commands/common/commands';
+ import { ContextKeyExpr, ContextKeyExpression } from 'vs/platform/contextkey/common/contextkey';
+ import { KeybindingsRegistry, KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegistry';
+@@ -20,7 +20,7 @@ import { CLOSE_SAVED_EDITORS_COMMAND_ID, CLOSE_EDITORS_IN_GROUP_COMMAND_ID, CLOS
+ import { AutoSaveAfterShortDelayContext } from 'vs/workbench/services/filesConfiguration/common/filesConfigurationService';
+ import { WorkbenchListDoubleSelection } from 'vs/platform/list/browser/listService';
+ import { Schemas } from 'vs/base/common/network';
+-import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext } from 'vs/workbench/common/contextkeys';
++import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext } from 'vs/workbench/common/contextkeys';
+ import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
+ import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
+ import { ThemeIcon } from 'vs/base/common/themables';
+@@ -237,12 +237,6 @@ appendToCommandPalette({
+ 	category: Categories.File
+ });
+ 
+-appendToCommandPalette({
+-	id: REVERT_FILE_COMMAND_ID,
+-	title: nls.localize2('revert', "Revert File"),
+-	category: Categories.File
+-});
+-
+ appendToCommandPalette({
+ 	id: COMPARE_WITH_SAVED_COMMAND_ID,
+ 	title: nls.localize2('compareActiveWithSaved', "Compare Active File with Saved"),
+@@ -336,26 +330,6 @@ MenuRegistry.appendMenuItem(MenuId.OpenEditorsContext, {
+ 	)
+ });
+ 
+-MenuRegistry.appendMenuItem(MenuId.OpenEditorsContext, {
+-	group: '2_save',
+-	order: 20,
+-	command: {
+-		id: REVERT_FILE_COMMAND_ID,
+-		title: nls.localize('revert', "Revert File"),
+-		precondition: OpenEditorsDirtyEditorContext
+-	},
+-	when: ContextKeyExpr.and(
+-		// Not: editor groups
+-		OpenEditorsGroupContext.toNegated(),
+-		// Not: readonly editors
+-		OpenEditorsReadonlyEditorContext.toNegated(),
+-		// Not: untitled editors (revert closes them)
+-		ResourceContextKey.Scheme.notEqualsTo(Schemas.untitled),
+-		// Not: auto save after short delay
+-		AutoSaveAfterShortDelayContext.toNegated()
+-	)
+-});
+-
+ MenuRegistry.appendMenuItem(MenuId.OpenEditorsContext, {
+ 	group: '2_save',
+ 	order: 30,
+@@ -706,21 +680,6 @@ MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
+ 	order: 1
+ });
+ 
+-MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
+-	group: '6_close',
+-	command: {
+-		id: REVERT_FILE_COMMAND_ID,
+-		title: nls.localize({ key: 'miRevert', comment: ['&& denotes a mnemonic'] }, "Re&&vert File"),
+-		precondition: ContextKeyExpr.or(
+-			// Active editor can revert
+-			ContextKeyExpr.and(ActiveEditorCanRevertContext),
+-			// Explorer focused but not on untitled
+-			ContextKeyExpr.and(ResourceContextKey.Scheme.notEqualsTo(Schemas.untitled), FoldersViewVisibleContext, SidebarFocusContext)
+-		),
+-	},
+-	order: 1
+-});
+-
+ MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
+ 	group: '6_close',
+ 	command: {
+diff --git a/src/vs/workbench/contrib/userDataProfile/browser/userDataProfile.ts b/src/vs/workbench/contrib/userDataProfile/browser/userDataProfile.ts
+index e213af6..33c8b16 100644
+--- a/src/vs/workbench/contrib/userDataProfile/browser/userDataProfile.ts
++++ b/src/vs/workbench/contrib/userDataProfile/browser/userDataProfile.ts
+@@ -12,19 +12,16 @@ import { ContextKeyExpr, IContextKey, IContextKeyService } from 'vs/platform/con
+ import { IUserDataProfile, IUserDataProfilesService } from 'vs/platform/userDataProfile/common/userDataProfile';
+ import { IWorkbenchContribution } from 'vs/workbench/common/contributions';
+ import { ILifecycleService, LifecyclePhase } from 'vs/workbench/services/lifecycle/common/lifecycle';
+-import { CURRENT_PROFILE_CONTEXT, HAS_PROFILES_CONTEXT, IS_CURRENT_PROFILE_TRANSIENT_CONTEXT, IS_PROFILE_IMPORT_IN_PROGRESS_CONTEXT, IUserDataProfileImportExportService, IUserDataProfileManagementService, IUserDataProfileService, PROFILES_CATEGORY, PROFILE_FILTER, IS_PROFILE_EXPORT_IN_PROGRESS_CONTEXT, ProfilesMenu, PROFILES_ENABLEMENT_CONTEXT, PROFILES_TITLE, IProfileTemplateInfo } from 'vs/workbench/services/userDataProfile/common/userDataProfile';
+-import { IQuickInputService, IQuickPickItem, IQuickPickSeparator } from 'vs/platform/quickinput/common/quickInput';
++import { CURRENT_PROFILE_CONTEXT, HAS_PROFILES_CONTEXT, IS_CURRENT_PROFILE_TRANSIENT_CONTEXT, IUserDataProfileImportExportService, IUserDataProfileManagementService, IUserDataProfileService, PROFILES_CATEGORY, ProfilesMenu, PROFILES_ENABLEMENT_CONTEXT, PROFILES_TITLE } from 'vs/workbench/services/userDataProfile/common/userDataProfile';
++import { IQuickInputService } from 'vs/platform/quickinput/common/quickInput';
+ import { INotificationService } from 'vs/platform/notification/common/notification';
+-import { IFileDialogService } from 'vs/platform/dialogs/common/dialogs';
+ import { URI } from 'vs/base/common/uri';
+ import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
+ import { IWorkspaceContextService } from 'vs/platform/workspace/common/workspace';
+ import { IWorkspaceTagsService } from 'vs/workbench/contrib/tags/common/workspaceTags';
+-import { getErrorMessage } from 'vs/base/common/errors';
+ import { Categories } from 'vs/platform/action/common/actionCommonCategories';
+ import { IOpenerService } from 'vs/platform/opener/common/opener';
+ 
+-type IProfileTemplateQuickPickItem = IQuickPickItem & IProfileTemplateInfo;
+ 
+ export class UserDataProfilesWorkbenchContribution extends Disposable implements IWorkbenchContribution {
+ 
+@@ -180,8 +177,6 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
+ 		this.currentprofileActionsDisposable.value = new DisposableStore();
+ 		this.currentprofileActionsDisposable.value.add(this.registerEditCurrentProfileAction());
+ 		this.currentprofileActionsDisposable.value.add(this.registerShowCurrentProfileContentsAction());
+-		this.currentprofileActionsDisposable.value.add(this.registerExportCurrentProfileAction());
+-		this.currentprofileActionsDisposable.value.add(this.registerImportProfileAction());
+ 	}
+ 
+ 	private registerEditCurrentProfileAction(): IDisposable {
+@@ -237,147 +232,6 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
+ 		});
+ 	}
+ 
+-	private registerExportCurrentProfileAction(): IDisposable {
+-		const that = this;
+-		const disposables = new DisposableStore();
+-		const id = 'workbench.profiles.actions.exportProfile';
+-		disposables.add(registerAction2(class ExportProfileAction extends Action2 {
+-			constructor() {
+-				super({
+-					id,
+-					title: localize2('export profile', "Export Profile..."),
+-					category: PROFILES_CATEGORY,
+-					precondition: IS_PROFILE_EXPORT_IN_PROGRESS_CONTEXT.toNegated(),
+-					menu: [
+-						{
+-							id: ProfilesMenu,
+-							group: '4_import_export_profiles',
+-							order: 1
+-						}, {
+-							id: MenuId.CommandPalette
+-						}
+-					]
+-				});
+-			}
+-
+-			async run(accessor: ServicesAccessor) {
+-				const userDataProfileImportExportService = accessor.get(IUserDataProfileImportExportService);
+-				return userDataProfileImportExportService.exportProfile();
+-			}
+-		}));
+-		disposables.add(MenuRegistry.appendMenuItem(MenuId.MenubarShare, {
+-			command: {
+-				id,
+-				title: localize2('export profile in share', "Export Profile ({0})...", that.userDataProfileService.currentProfile.name),
+-				precondition: PROFILES_ENABLEMENT_CONTEXT,
+-			},
+-		}));
+-		return disposables;
+-	}
+-
+-	private registerImportProfileAction(): IDisposable {
+-		const disposables = new DisposableStore();
+-		const id = 'workbench.profiles.actions.importProfile';
+-		const that = this;
+-		disposables.add(registerAction2(class ImportProfileAction extends Action2 {
+-			constructor() {
+-				super({
+-					id,
+-					title: localize2('import profile', "Import Profile..."),
+-					category: PROFILES_CATEGORY,
+-					precondition: IS_PROFILE_IMPORT_IN_PROGRESS_CONTEXT.toNegated(),
+-					menu: [
+-						{
+-							id: ProfilesMenu,
+-							group: '4_import_export_profiles',
+-							when: PROFILES_ENABLEMENT_CONTEXT,
+-							order: 2
+-						}, {
+-							id: MenuId.CommandPalette,
+-							when: PROFILES_ENABLEMENT_CONTEXT,
+-						}
+-					]
+-				});
+-			}
+-
+-			async run(accessor: ServicesAccessor) {
+-				const fileDialogService = accessor.get(IFileDialogService);
+-				const quickInputService = accessor.get(IQuickInputService);
+-				const userDataProfileImportExportService = accessor.get(IUserDataProfileImportExportService);
+-				const notificationService = accessor.get(INotificationService);
+-
+-				const disposables = new DisposableStore();
+-				const quickPick = disposables.add(quickInputService.createQuickPick());
+-				const profileTemplateQuickPickItems = await that.getProfileTemplatesQuickPickItems();
+-
+-				const updateQuickPickItems = (value?: string) => {
+-					const quickPickItems: (IQuickPickItem | IQuickPickSeparator)[] = [];
+-					if (value) {
+-						quickPickItems.push({ label: quickPick.value, description: localize('import from url', "Import from URL") });
+-					}
+-					quickPickItems.push({ label: localize('import from file', "Select File...") });
+-					if (profileTemplateQuickPickItems.length) {
+-						quickPickItems.push({
+-							type: 'separator',
+-							label: localize('templates', "Profile Templates")
+-						}, ...profileTemplateQuickPickItems);
+-					}
+-					quickPick.items = quickPickItems;
+-				};
+-
+-				quickPick.title = localize('import profile quick pick title', "Import from Profile Template...");
+-				quickPick.placeholder = localize('import profile placeholder', "Provide Profile Template URL");
+-				quickPick.ignoreFocusOut = true;
+-				disposables.add(quickPick.onDidChangeValue(updateQuickPickItems));
+-				updateQuickPickItems();
+-				quickPick.matchOnLabel = false;
+-				quickPick.matchOnDescription = false;
+-				disposables.add(quickPick.onDidAccept(async () => {
+-					quickPick.hide();
+-					const selectedItem = quickPick.selectedItems[0];
+-					if (!selectedItem) {
+-						return;
+-					}
+-					try {
+-						if ((<IProfileTemplateQuickPickItem>selectedItem).url) {
+-							return await that.userDataProfileImportExportService.createProfile(URI.parse((<IProfileTemplateQuickPickItem>selectedItem).url));
+-						}
+-						const profile = selectedItem.label === quickPick.value ? URI.parse(quickPick.value) : await this.getProfileUriFromFileSystem(fileDialogService);
+-						if (profile) {
+-							await userDataProfileImportExportService.importProfile(profile);
+-						}
+-					} catch (error) {
+-						notificationService.error(localize('profile import error', "Error while creating profile: {0}", getErrorMessage(error)));
+-					}
+-				}));
+-				disposables.add(quickPick.onDidHide(() => disposables.dispose()));
+-				quickPick.show();
+-			}
+-
+-			private async getProfileUriFromFileSystem(fileDialogService: IFileDialogService): Promise<URI | null> {
+-				const profileLocation = await fileDialogService.showOpenDialog({
+-					canSelectFolders: false,
+-					canSelectFiles: true,
+-					canSelectMany: false,
+-					filters: PROFILE_FILTER,
+-					title: localize('import profile dialog', "Select Profile Template File"),
+-				});
+-				if (!profileLocation) {
+-					return null;
+-				}
+-				return profileLocation[0];
+-			}
+-		}));
+-		disposables.add(MenuRegistry.appendMenuItem(MenuId.MenubarShare, {
+-			command: {
+-				id,
+-				title: localize2('import profile share', "Import Profile..."),
+-				precondition: PROFILES_ENABLEMENT_CONTEXT,
+-			},
+-		}));
+-		return disposables;
+-	}
+-
+ 	private registerCreateFromCurrentProfileAction(): void {
+ 		const that = this;
+ 		this._register(registerAction2(class CreateFromCurrentProfileAction extends Action2 {
+@@ -494,18 +348,6 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
+ 		}));
+ 	}
+ 
+-	private async getProfileTemplatesQuickPickItems(): Promise<IProfileTemplateQuickPickItem[]> {
+-		const quickPickItems: IProfileTemplateQuickPickItem[] = [];
+-		const profileTemplates = await this.userDataProfileManagementService.getBuiltinProfileTemplates();
+-		for (const template of profileTemplates) {
+-			quickPickItems.push({
+-				label: template.name,
+-				...template
+-			});
+-		}
+-		return quickPickItems;
+-	}
+-
+ 	private async reportWorkspaceProfileInfo(): Promise<void> {
+ 		await this.lifecycleService.when(LifecyclePhase.Eventually);
+ 		const workspaceId = await this.workspaceTagsService.getTelemetryWorkspaceId(this.workspaceContextService.getWorkspace(), this.workspaceContextService.getWorkbenchState());
+-- 
+2.39.5 (Apple Git-154)
+
