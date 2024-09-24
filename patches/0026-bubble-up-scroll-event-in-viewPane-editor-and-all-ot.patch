@@ -1,0 +1,72 @@
+From 6622d896aeb8a6e89651e6f3934cbdc3b5fde361 Mon Sep 17 00:00:00 2001
+From: Shiwei Ge <>
+Date: Sun, 25 Aug 2024 15:02:01 -0700
+Subject: [PATCH] bubble up scroll event in viewPane, editor and all other
+ parts of vscode component
+
+---
+ src/vs/base/browser/ui/list/listView.ts             | 2 +-
+ src/vs/workbench/browser/parts/editor/textEditor.ts | 5 ++++-
+ src/vs/workbench/browser/parts/views/viewPane.ts    | 2 +-
+ src/vs/workbench/browser/window.ts                  | 3 ---
+ 4 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/vs/base/browser/ui/list/listView.ts b/src/vs/base/browser/ui/list/listView.ts
+index 47a4f7a..9bff4e6 100644
+--- a/src/vs/base/browser/ui/list/listView.ts
++++ b/src/vs/base/browser/ui/list/listView.ts
+@@ -105,7 +105,7 @@ const DefaultOptions = {
+ 	},
+ 	horizontalScrolling: false,
+ 	transformOptimization: true,
+-	alwaysConsumeMouseWheel: true,
++	alwaysConsumeMouseWheel: false,
+ };
+ 
+ export class ElementsDragAndDropData<T, TContext = void> implements IDragAndDropData {
+diff --git a/src/vs/workbench/browser/parts/editor/textEditor.ts b/src/vs/workbench/browser/parts/editor/textEditor.ts
+index 629d430..8932946 100644
+--- a/src/vs/workbench/browser/parts/editor/textEditor.ts
++++ b/src/vs/workbench/browser/parts/editor/textEditor.ts
+@@ -168,7 +168,10 @@ export abstract class AbstractTextEditor<T extends IEditorViewState> extends Abs
+ 			lineNumbersMinChars: 3,
+ 			fixedOverflowWidgets: true,
+ 			...this.getReadonlyConfiguration(this.input?.isReadonly()),
+-			renderValidationDecorations: configuration.problems?.visibility !== false ? 'on' : 'off'
++			renderValidationDecorations: configuration.problems?.visibility !== false ? 'on' : 'off',
++			scrollbar: {
++				alwaysConsumeMouseWheel: false,
++			}
+ 		};
+ 	}
+ 
+diff --git a/src/vs/workbench/browser/parts/views/viewPane.ts b/src/vs/workbench/browser/parts/views/viewPane.ts
+index 294c69b..87a3ec7 100644
+--- a/src/vs/workbench/browser/parts/views/viewPane.ts
++++ b/src/vs/workbench/browser/parts/views/viewPane.ts
+@@ -161,7 +161,7 @@ class ViewWelcomeController {
+ 		this.container.classList.add('welcome');
+ 		const viewWelcomeContainer = append(this.container, $('.welcome-view'));
+ 		this.element = $('.welcome-view-content', { tabIndex: 0 });
+-		this.scrollableElement = new DomScrollableElement(this.element, { alwaysConsumeMouseWheel: true, horizontal: ScrollbarVisibility.Hidden, vertical: ScrollbarVisibility.Visible, });
++		this.scrollableElement = new DomScrollableElement(this.element, { alwaysConsumeMouseWheel: false, horizontal: ScrollbarVisibility.Hidden, vertical: ScrollbarVisibility.Visible, });
+ 		append(viewWelcomeContainer, this.scrollableElement.getDomNode());
+ 
+ 		this.enabledDisposables.add(toDisposable(() => {
+diff --git a/src/vs/workbench/browser/window.ts b/src/vs/workbench/browser/window.ts
+index e964af6..6d1f781 100644
+--- a/src/vs/workbench/browser/window.ts
++++ b/src/vs/workbench/browser/window.ts
+@@ -238,9 +238,6 @@ export class BrowserWindow extends BaseWindow {
+ 			}
+ 		}));
+ 
+-		// Prevent the back/forward gestures in macOS
+-		this._register(addDisposableListener(this.layoutService.mainContainer, EventType.WHEEL, e => e.preventDefault(), { passive: false }));
+-
+ 		// Prevent native context menus in web
+ 		this._register(addDisposableListener(this.layoutService.mainContainer, EventType.CONTEXT_MENU, e => EventHelper.stop(e, true)));
+ 
+-- 
+2.39.3 (Apple Git-146)
+

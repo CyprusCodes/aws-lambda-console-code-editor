@@ -1,0 +1,27 @@
+From 68e17eb3ebeec206cd2d9bfc88646fd768ee2062 Mon Sep 17 00:00:00 2001
+From: Erika Yao <>
+Date: Mon, 9 Sep 2024 22:33:35 +0000
+Subject: [PATCH] Use toolkit availability to determine product.json to use
+
+---
+ src/vs/code/browser/workbench/workbench.ts | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
+index cc8fbe1..245a190 100644
+--- a/src/vs/code/browser/workbench/workbench.ts
++++ b/src/vs/code/browser/workbench/workbench.ts
+@@ -25,7 +25,9 @@ const MESSAGE_TYPE = 'application/x-cloud9-lite-v2+json';
+   } else if (configElement) {
+     config = JSON.parse(configElement.getAttribute('data-settings')!);
+   } else {
+-    const result = await fetch('./product.json');
++    const urlObj = new URL(mainWindow.location.href);
++    const product = urlObj.searchParams.get('toolkit') == 'true' ? './product.full.json' : './product.json';
++	  const result = await fetch(product);
+     config = await result.json();
+   }
+ 
+-- 
+2.40.1
+

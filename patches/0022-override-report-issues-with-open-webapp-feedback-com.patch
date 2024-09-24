@@ -1,0 +1,41 @@
+From b6ade7f25358e371506e91a5304f2b739a92d58c Mon Sep 17 00:00:00 2001
+From: Shiwei Ge <>
+Date: Wed, 7 Aug 2024 11:06:34 -0700
+Subject: [PATCH] override report issues with open webapp feedback command
+
+---
+ .../contrib/issue/common/issue.contribution.ts        | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
+
+diff --git a/src/vs/workbench/contrib/issue/common/issue.contribution.ts b/src/vs/workbench/contrib/issue/common/issue.contribution.ts
+index 9e6ee97..50c7b28 100644
+--- a/src/vs/workbench/contrib/issue/common/issue.contribution.ts
++++ b/src/vs/workbench/contrib/issue/common/issue.contribution.ts
+@@ -7,7 +7,7 @@ import { localize, localize2 } from 'vs/nls';
+ import { ICommandAction } from 'vs/platform/action/common/action';
+ import { Categories } from 'vs/platform/action/common/actionCommonCategories';
+ import { MenuId, MenuRegistry } from 'vs/platform/actions/common/actions';
+-import { CommandsRegistry, ICommandMetadata } from 'vs/platform/commands/common/commands';
++import { CommandsRegistry, ICommandMetadata, ICommandService } from 'vs/platform/commands/common/commands';
+ import { IssueReporterData } from 'vs/platform/issue/common/issue';
+ import { IProductService } from 'vs/platform/product/common/productService';
+ import { IWorkbenchContribution } from 'vs/workbench/common/contributions';
+@@ -73,14 +73,7 @@ export class BaseIssueContribution extends Disposable implements IWorkbenchContr
+ 		this._register(CommandsRegistry.registerCommand({
+ 			id: OpenIssueReporterActionId,
+ 			handler: function (accessor, args?: string | [string] | OpenIssueReporterArgs) {
+-				const data: Partial<IssueReporterData> =
+-					typeof args === 'string'
+-						? { extensionId: args }
+-						: Array.isArray(args)
+-							? { extensionId: args[0] }
+-							: args ?? {};
+-
+-				return accessor.get(IWorkbenchIssueService).openReporter(data);
++				return accessor.get(ICommandService).executeCommand('lambda-console.reportIssue');
+ 			},
+ 			metadata: OpenIssueReporterCommandMetadata
+ 		}));
+-- 
+2.39.3 (Apple Git-146)
+
