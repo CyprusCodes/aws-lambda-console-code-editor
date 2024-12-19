@@ -11,7 +11,7 @@ This patch removes the download functionality to simplify the Code OSS. It also 
  3 files changed, 39 insertions(+), 40 deletions(-)
 
 diff --git a/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts b/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
-index ed1ea24..7f91c5e 100644
+index 64ec809..99aae3a 100644
 --- a/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
 +++ b/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
 @@ -4,7 +4,7 @@
@@ -27,12 +27,12 @@ index ed1ea24..7f91c5e 100644
  import { AutoSaveAfterShortDelayContext } from 'vs/workbench/services/filesConfiguration/common/filesConfigurationService';
  import { WorkbenchListDoubleSelection } from 'vs/platform/list/browser/listService';
  import { Schemas } from 'vs/base/common/network';
--import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext } from 'vs/workbench/common/contextkeys';
+-import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from 'vs/workbench/common/contextkeys';
 +import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext } from 'vs/workbench/common/contextkeys';
  import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
  import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
  import { ThemeIcon } from 'vs/base/common/themables';
-@@ -543,22 +543,22 @@ MenuRegistry.appendMenuItem(MenuId.ExplorerContext, {
+@@ -554,22 +554,22 @@ MenuRegistry.appendMenuItem(MenuId.ExplorerContext, {
  	when: ExplorerFolderContext
  });
  
@@ -72,7 +72,7 @@ index ed1ea24..7f91c5e 100644
  MenuRegistry.appendMenuItem(MenuId.ExplorerContext, ({
  	group: '5b_importexport',
 diff --git a/src/vs/workbench/contrib/files/browser/fileActions.ts b/src/vs/workbench/contrib/files/browser/fileActions.ts
-index 0b92df8..91c40b9 100644
+index 58a3df1..b74c177 100644
 --- a/src/vs/workbench/contrib/files/browser/fileActions.ts
 +++ b/src/vs/workbench/contrib/files/browser/fileActions.ts
 @@ -49,7 +49,7 @@ import { trim, rtrim } from 'vs/base/common/strings';
@@ -84,7 +84,7 @@ index 0b92df8..91c40b9 100644
  import { IPaneCompositePartService } from 'vs/workbench/services/panecomposite/browser/panecomposite';
  import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
  import { IPathService } from 'vs/workbench/services/path/common/pathService';
-@@ -1033,29 +1033,29 @@ export const cutFileHandler = async (accessor: ServicesAccessor) => {
+@@ -1051,30 +1051,6 @@ export const cutFileHandler = async (accessor: ServicesAccessor) => {
  	}
  };
  
@@ -92,62 +92,39 @@ index 0b92df8..91c40b9 100644
 -	const explorerService = accessor.get(IExplorerService);
 -	const notificationService = accessor.get(INotificationService);
 -	const instantiationService = accessor.get(IInstantiationService);
-+// const downloadFileHandler = async (accessor: ServicesAccessor) => {
-+// 	const explorerService = accessor.get(IExplorerService);
-+// 	const notificationService = accessor.get(INotificationService);
-+// 	const instantiationService = accessor.get(IInstantiationService);
- 
+-
 -	const context = explorerService.getContext(true);
 -	const explorerItems = context.length ? context : explorerService.roots;
-+// 	const context = explorerService.getContext(true);
-+// 	const explorerItems = context.length ? context : explorerService.roots;
- 
+-
 -	const downloadHandler = instantiationService.createInstance(FileDownload);
-+// 	const downloadHandler = instantiationService.createInstance(FileDownload);
- 
+-
 -	try {
 -		await downloadHandler.download(explorerItems);
 -	} catch (error) {
 -		notificationService.error(error);
-+// 	try {
-+// 		await downloadHandler.download(explorerItems);
-+// 	} catch (error) {
-+// 		notificationService.error(error);
- 
+-
 -		throw error;
 -	}
 -};
-+// 		throw error;
-+// 	}
-+// };
- 
+-
 -CommandsRegistry.registerCommand({
 -	id: DOWNLOAD_COMMAND_ID,
 -	handler: downloadFileHandler
 -});
-+// CommandsRegistry.registerCommand({
-+// 	id: DOWNLOAD_COMMAND_ID,
-+// 	handler: downloadFileHandler
-+// });
- 
+-
  const uploadFileHandler = async (accessor: ServicesAccessor) => {
  	const explorerService = accessor.get(IExplorerService);
+ 	const notificationService = accessor.get(INotificationService);
 diff --git a/src/vs/workbench/services/extensions/browser/webWorkerExtensionHost.ts b/src/vs/workbench/services/extensions/browser/webWorkerExtensionHost.ts
-index b6d4f0f..5a8240b 100644
+index 8f4dc4a..af71592 100644
 --- a/src/vs/workbench/services/extensions/browser/webWorkerExtensionHost.ts
 +++ b/src/vs/workbench/services/extensions/browser/webWorkerExtensionHost.ts
-@@ -110,9 +110,8 @@ export class WebWorkerExtensionHost extends Disposable implements IExtensionHost
- 				res.searchParams.set('parentOrigin', mainWindow.origin);
+@@ -111,8 +111,6 @@ export class WebWorkerExtensionHost extends Disposable implements IExtensionHost
  				res.searchParams.set('salt', stableOriginUUID);
  				return res.toString();
--			}
+ 			}
 -
 -			console.warn(`The web worker extension host is started in a same-origin iframe!`);
-+			}
-+
  		}
  
  		const relativeExtensionHostIframeSrc = FileAccess.asBrowserUri(iframeModulePath);
--- 
-2.40.1
-
