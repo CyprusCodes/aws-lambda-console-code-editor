@@ -8,7 +8,7 @@ Subject: [PATCH] override report issues with open webapp feedback command
  1 file changed, 2 insertions(+), 9 deletions(-)
 
 diff --git a/src/vs/workbench/contrib/issue/common/issue.contribution.ts b/src/vs/workbench/contrib/issue/common/issue.contribution.ts
-index 9e6ee97..50c7b28 100644
+index b3e9a06..c4be8c5 100644
 --- a/src/vs/workbench/contrib/issue/common/issue.contribution.ts
 +++ b/src/vs/workbench/contrib/issue/common/issue.contribution.ts
 @@ -7,7 +7,7 @@ import { localize, localize2 } from 'vs/nls';
@@ -17,25 +17,15 @@ index 9e6ee97..50c7b28 100644
  import { MenuId, MenuRegistry } from 'vs/platform/actions/common/actions';
 -import { CommandsRegistry, ICommandMetadata } from 'vs/platform/commands/common/commands';
 +import { CommandsRegistry, ICommandMetadata, ICommandService } from 'vs/platform/commands/common/commands';
- import { IssueReporterData } from 'vs/platform/issue/common/issue';
  import { IProductService } from 'vs/platform/product/common/productService';
  import { IWorkbenchContribution } from 'vs/workbench/common/contributions';
-@@ -73,14 +73,7 @@ export class BaseIssueContribution extends Disposable implements IWorkbenchContr
- 		this._register(CommandsRegistry.registerCommand({
- 			id: OpenIssueReporterActionId,
- 			handler: function (accessor, args?: string | [string] | OpenIssueReporterArgs) {
--				const data: Partial<IssueReporterData> =
--					typeof args === 'string'
--						? { extensionId: args }
--						: Array.isArray(args)
--							? { extensionId: args[0] }
--							: args ?? {};
--
+ import { IWorkbenchIssueService, IssueReporterData } from 'vs/workbench/contrib/issue/common/issue';
+@@ -79,7 +79,7 @@ export class BaseIssueContribution extends Disposable implements IWorkbenchContr
+ 							? { extensionId: args[0] }
+ 							: args ?? {};
+ 
 -				return accessor.get(IWorkbenchIssueService).openReporter(data);
-+				return accessor.get(ICommandService).executeCommand('lambda-console.reportIssue');
++				return accessor.get(ICommandService).executeCommand('cmnd-cloud.reportIssue');
  			},
  			metadata: OpenIssueReporterCommandMetadata
  		}));
--- 
-2.39.3 (Apple Git-146)
-
