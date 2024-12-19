@@ -10,7 +10,7 @@ This patch disables user-facing task-related functionality in the codebase.
  2 files changed, 159 insertions(+), 167 deletions(-)
 
 diff --git a/src/vs/workbench/contrib/tasks/browser/task.contribution.ts b/src/vs/workbench/contrib/tasks/browser/task.contribution.ts
-index a0d2bb5..08fd8c4 100644
+index 8805990..db5c2a4 100644
 --- a/src/vs/workbench/contrib/tasks/browser/task.contribution.ts
 +++ b/src/vs/workbench/contrib/tasks/browser/task.contribution.ts
 @@ -8,7 +8,7 @@ import * as nls from 'vs/nls';
@@ -31,7 +31,7 @@ index a0d2bb5..08fd8c4 100644
 +import { ITaskEvent, TaskEventKind, TaskGroup, TaskSettingId, TASK_RUNNING_STATE } from 'vs/workbench/contrib/tasks/common/tasks';
 +import { ITaskService, TaskExecutionSupportedContext } from 'vs/workbench/contrib/tasks/common/taskService';
  
- import { Extensions as WorkbenchExtensions, IWorkbenchContributionsRegistry, IWorkbenchContribution } from 'vs/workbench/common/contributions';
+ import { Extensions as WorkbenchExtensions, IWorkbenchContributionsRegistry, IWorkbenchContribution, WorkbenchPhase, registerWorkbenchContribution2 } from 'vs/workbench/common/contributions';
 -import { RunAutomaticTasks, ManageAutomaticTaskRunning } from 'vs/workbench/contrib/tasks/browser/runAutomaticTasks';
 -import { KeybindingsRegistry, KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegistry';
 -import { KeyMod, KeyCode } from 'vs/base/common/keyCodes';
@@ -74,7 +74,7 @@ index a0d2bb5..08fd8c4 100644
  
  export class TaskStatusBarContributions extends Disposable implements IWorkbenchContribution {
  	private _runningTasksStatusItem: IStatusbarEntryAccessor | undefined;
-@@ -234,151 +228,151 @@ MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
+@@ -234,102 +228,102 @@ MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
  });
  
  
@@ -174,13 +174,6 @@ index a0d2bb5..08fd8c4 100644
 -	},
 -	when: TaskExecutionSupportedContext
 -});
--MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
--	command: {
--		id: 'workbench.action.tasks.openUserTasks',
--		title: nls.localize2('workbench.action.tasks.openUserTasks', "Open User Tasks"), category: TASKS_CATEGORY
--	},
--	when: TaskExecutionSupportedContext
--});
 +// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
 +// 	command: {
 +// 		id: 'workbench.action.tasks.openWorkspaceFileTasks',
@@ -277,15 +270,10 @@ index a0d2bb5..08fd8c4 100644
 +// 	},
 +// 	when: TaskExecutionSupportedContext
 +// });
-+// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
-+// 	command: {
-+// 		id: 'workbench.action.tasks.openUserTasks',
-+// 		title: nls.localize2('workbench.action.tasks.openUserTasks', "Open User Tasks"), category: TASKS_CATEGORY
-+// 	},
-+// 	when: TaskExecutionSupportedContext
-+// });
- 
- class UserTasksGlobalActionContribution extends Disposable implements IWorkbenchContribution {
+ MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+ 	command: {
+ 		id: 'workbench.action.tasks.openUserTasks',
+@@ -342,43 +336,43 @@ class UserTasksGlobalActionContribution extends Disposable implements IWorkbench
  
  	constructor() {
  		super();
@@ -295,7 +283,7 @@ index a0d2bb5..08fd8c4 100644
  
 -	private registerActions() {
 -		const id = 'workbench.action.tasks.openUserTasks';
--		const title = nls.localize('userTasks', "User Tasks");
+-		const title = nls.localize('tasks', "Tasks");
 -		this._register(MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
 -			command: {
 -				id,
@@ -317,7 +305,7 @@ index a0d2bb5..08fd8c4 100644
 -	}
 +	// private registerActions() {
 +	// 	const id = 'workbench.action.tasks.openUserTasks';
-+	// 	const title = nls.localize('userTasks', "User Tasks");
++	// 	const title = nls.localize('tasks', "Tasks");
 +	// 	this._register(MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
 +	// 		command: {
 +	// 			id,
@@ -386,7 +374,7 @@ index a0d2bb5..08fd8c4 100644
  // tasks.json validation
  const schema: IJSONSchema = {
 diff --git a/src/vs/workbench/services/configuration/browser/configurationService.ts b/src/vs/workbench/services/configuration/browser/configurationService.ts
-index 40ce845..48937b3 100644
+index 7feab6a..5e75727 100644
 --- a/src/vs/workbench/services/configuration/browser/configurationService.ts
 +++ b/src/vs/workbench/services/configuration/browser/configurationService.ts
 @@ -30,7 +30,6 @@ import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/
@@ -397,6 +385,3 @@ index 40ce845..48937b3 100644
  import { IUriIdentityService } from 'vs/platform/uriIdentity/common/uriIdentity';
  import { IWorkspaceTrustManagementService } from 'vs/platform/workspace/common/workspaceTrust';
  import { delta, distinct, equals as arrayEquals } from 'vs/base/common/arrays';
--- 
-2.40.1
-
