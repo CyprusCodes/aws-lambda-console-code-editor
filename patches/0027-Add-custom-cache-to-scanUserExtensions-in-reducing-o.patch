@@ -9,18 +9,18 @@ Subject: [PATCH] Add custom cache to scanUserExtensions in reducing of
  1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts b/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts
-index 1618b7a..31af1d0 100644
+index c861ead..6d164e7 100644
 --- a/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts
 +++ b/src/vs/workbench/services/extensionManagement/browser/webExtensionsScannerService.ts
-@@ -100,6 +100,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
- 	private readonly customBuiltinExtensionsCacheResource: URI | undefined = undefined;
+@@ -101,6 +101,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
  	private readonly resourcesAccessQueueMap = new ResourceMap<Queue<IWebExtension[]>>();
- 	private readonly injectedExtensions: string [] = ['vscodevim.vim', 'ms-vscode.sublime-keybindings','tuttieee.emacs-mcx'];
+ 	private readonly extensionsEnabledWithApiProposalVersion: string[];
+ 	private readonly injectedExtensions: string[] = ['vscodevim.vim', 'ms-vscode.sublime-keybindings', 'tuttieee.emacs-mcx'];
 +	private customBuiltinExtensionsCache: IScannedExtension[] | null = null;
+ 
  	constructor(
  		@IBrowserWorkbenchEnvironmentService private readonly environmentService: IBrowserWorkbenchEnvironmentService,
- 		@IBuiltinExtensionsScannerService private readonly builtinExtensionsScannerService: IBuiltinExtensionsScannerService,
-@@ -473,7 +474,9 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
+@@ -476,7 +477,9 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
  		const extensions = new Map<string, IScannedExtension>();
  
  		// Custom builtin extensions defined through `additionalBuiltinExtensions` API
@@ -31,6 +31,3 @@ index 1618b7a..31af1d0 100644
  		for (const extension of customBuiltinExtensions) {
  			extensions.set(extension.identifier.id.toLowerCase(), extension);
  		}
--- 
-2.40.1
-
