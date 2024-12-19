@@ -11,20 +11,20 @@ This patch removes the cloud synchronization and account-related features from t
  3 files changed, 8 insertions(+), 666 deletions(-)
 
 diff --git a/src/vs/workbench/browser/parts/globalCompositeBar.ts b/src/vs/workbench/browser/parts/globalCompositeBar.ts
-index 8301e27..86b53f1 100644
+index 533fbd0..11d997b 100644
 --- a/src/vs/workbench/browser/parts/globalCompositeBar.ts
 +++ b/src/vs/workbench/browser/parts/globalCompositeBar.ts
-@@ -147,7 +147,7 @@ export class GlobalCompositeBar extends Disposable {
- 	}
+@@ -700,7 +700,7 @@ function simpleActivityContextMenuActions(storageService: IStorageService, isAcc
+ }
  
- 	private get accountsVisibilityPreference(): boolean {
--		return this.storageService.getBoolean(AccountsActivityActionViewItem.ACCOUNTS_VISIBILITY_PREFERENCE_KEY, StorageScope.PROFILE, true);
-+		return false;
- 	}
+ export function isAccountsActionVisible(storageService: IStorageService): boolean {
+-	return storageService.getBoolean(AccountsActivityActionViewItem.ACCOUNTS_VISIBILITY_PREFERENCE_KEY, StorageScope.PROFILE, true);
++	return false;
+ }
  
- 	private set accountsVisibilityPreference(value: boolean) {
+ function setAccountsActionVisible(storageService: IStorageService, visible: boolean) {
 diff --git a/src/vs/workbench/contrib/editSessions/browser/editSessions.contribution.ts b/src/vs/workbench/contrib/editSessions/browser/editSessions.contribution.ts
-index 000198b..4e767d4 100644
+index deb9b7e..71af117 100644
 --- a/src/vs/workbench/contrib/editSessions/browser/editSessions.contribution.ts
 +++ b/src/vs/workbench/contrib/editSessions/browser/editSessions.contribution.ts
 @@ -7,10 +7,9 @@ import { Disposable, MutableDisposable } from 'vs/base/common/lifecycle';
@@ -33,9 +33,9 @@ index 000198b..4e767d4 100644
  import { ILifecycleService, LifecyclePhase, ShutdownReason } from 'vs/workbench/services/lifecycle/common/lifecycle';
 -import { Action2, IAction2Options, MenuId, MenuRegistry, registerAction2 } from 'vs/platform/actions/common/actions';
 -import { ServicesAccessor } from 'vs/editor/browser/editorExtensions';
-+import { IAction2Options } from 'vs/platform/actions/common/actions';
  import { localize, localize2 } from 'vs/nls';
 -import { IEditSessionsStorageService, Change, ChangeType, Folder, EditSession, FileType, EDIT_SESSION_SYNC_CATEGORY, EDIT_SESSIONS_CONTAINER_ID, EditSessionSchemaVersion, IEditSessionsLogService, EDIT_SESSIONS_VIEW_ICON, EDIT_SESSIONS_TITLE, EDIT_SESSIONS_SHOW_VIEW, EDIT_SESSIONS_DATA_VIEW_ID, decodeEditSessionFileContent, hashedEditSessionId, editSessionsLogId, EDIT_SESSIONS_PENDING } from 'vs/workbench/contrib/editSessions/common/editSessions';
++import { IAction2Options } from 'vs/platform/actions/common/actions';
 +import { IEditSessionsStorageService, Change, ChangeType, Folder, EditSession, FileType, EDIT_SESSION_SYNC_CATEGORY, EditSessionSchemaVersion, IEditSessionsLogService, decodeEditSessionFileContent, hashedEditSessionId, EDIT_SESSIONS_PENDING } from 'vs/workbench/contrib/editSessions/common/editSessions';
  import { ISCMRepository, ISCMService } from 'vs/workbench/contrib/scm/common/scm';
  import { IFileService } from 'vs/platform/files/common/files';
@@ -89,10 +89,11 @@ index 000198b..4e767d4 100644
  import { WorkspaceStateSynchroniser } from 'vs/workbench/contrib/editSessions/common/workspaceStateSync';
  import { IUserDataProfilesService } from 'vs/platform/userDataProfile/common/userDataProfile';
  import { IRequestService } from 'vs/platform/request/common/request';
-@@ -74,60 +50,23 @@ registerSingleton(IEditSessionsLogService, EditSessionsLogService, Instantiation
+@@ -73,61 +49,23 @@ import { IWorkspaceIdentityService } from 'vs/workbench/services/workspaces/comm
+ registerSingleton(IEditSessionsLogService, EditSessionsLogService, InstantiationType.Delayed);
  registerSingleton(IEditSessionsStorageService, EditSessionsWorkbenchService, InstantiationType.Delayed);
  
- 
+-
 -const continueWorkingOnCommand: IAction2Options = {
 -	id: '_workbench.editSessions.actions.continueEditSession',
 -	title: localize2('continue working on', 'Continue Working On...'),
@@ -143,14 +144,14 @@ index 000198b..4e767d4 100644
  	private readonly pendingEditSessionsContext: IContextKey<boolean>;
  
  	private static APPLICATION_LAUNCHED_VIA_CONTINUE_ON_STORAGE_KEY = 'applicationLaunchedViaContinueOn';
- 	private accountsMenuBadgeDisposable = this._register(new MutableDisposable());
+ 	private readonly accountsMenuBadgeDisposable = this._register(new MutableDisposable());
  
 -	private registeredCommands = new Set<string>();
 -
  	private workspaceStateSynchronizer: IUserDataSynchroniser | undefined;
  	private editSessionsStorageClient: EditSessionsStoreClient | undefined;
  
-@@ -135,28 +74,22 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
+@@ -135,28 +73,22 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
  		@IEditSessionsStorageService private readonly editSessionsStorageService: IEditSessionsStorageService,
  		@IFileService private readonly fileService: IFileService,
  		@IProgressService private readonly progressService: IProgressService,
@@ -179,7 +180,7 @@ index 000198b..4e767d4 100644
  		@IRequestService private readonly requestService: IRequestService,
  		@IUserDataProfilesService private readonly userDataProfilesService: IUserDataProfilesService,
  		@IUriIdentityService private readonly uriIdentityService: IUriIdentityService,
-@@ -164,7 +97,6 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
+@@ -164,7 +96,6 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
  	) {
  		super();
  
@@ -187,7 +188,7 @@ index 000198b..4e767d4 100644
  		this.pendingEditSessionsContext = EDIT_SESSIONS_PENDING.bindTo(this.contextKeyService);
  		this.pendingEditSessionsContext.set(false);
  
-@@ -178,18 +110,11 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
+@@ -178,11 +109,6 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
  
  		this.autoResumeEditSession();
  
@@ -199,14 +200,7 @@ index 000198b..4e767d4 100644
  		this.lifecycleService.onWillShutdown((e) => {
  			if (e.reason !== ShutdownReason.RELOAD && this.editSessionsStorageService.isSignedIn && this.configurationService.getValue('workbench.experimental.cloudChanges.autoStore') === 'onShutdown' && !isWeb) {
  				e.join(this.autoStoreEditSession(), { id: 'autoStoreWorkingChanges', label: localize('autoStoreWorkingChanges', 'Storing current working changes...') });
- 			}
- 		});
--		this._register(this.editSessionsStorageService.onDidSignIn(() => this.updateAccountsMenuBadge()));
--		this._register(this.editSessionsStorageService.onDidSignOut(() => this.updateAccountsMenuBadge()));
- 	}
- 
- 	private async autoResumeEditSession() {
-@@ -271,225 +196,6 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
+@@ -271,225 +197,6 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
  		});
  	}
  
@@ -282,8 +276,8 @@ index 000198b..4e767d4 100644
 -				type ContinueOnEventOutcome = { outcome: string; hashedId?: string };
 -				type ContinueOnClassificationOutcome = {
 -					owner: 'joyceerhl'; comment: 'Reporting the outcome of invoking the Continue On action.';
--					outcome: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'The outcome of invoking continue edit session.' };
--					hashedId?: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'The hash of the stored edit session id, for correlating success of stores and resumes.' };
+-					outcome: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The outcome of invoking continue edit session.' };
+-					hashedId?: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The hash of the stored edit session id, for correlating success of stores and resumes.' };
 -				};
 -
 -				// First ask the user to pick a destination, if necessary
@@ -432,7 +426,7 @@ index 000198b..4e767d4 100644
  	async resumeEditSession(ref?: string, silent?: boolean, forceApplyUnrelatedChange?: boolean, applyPartialMatch?: boolean, progress?: IProgress<IProgressStep>, serializedData?: string): Promise<void> {
  		// Wait for the remote environment to become available, if any
  		await this.remoteAgentService.getEnvironment();
-@@ -794,334 +500,8 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
+@@ -794,334 +501,8 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
  			return resources;
  		}, new Set<URI>()); // A URI might appear in more than one resource group
  	}
@@ -450,7 +444,7 @@ index 000198b..4e767d4 100644
 -		type EditSessionsAuthCheckEvent = { outcome: string };
 -		type EditSessionsAuthCheckClassification = {
 -			owner: 'joyceerhl'; comment: 'Reporting whether we can and should store edit session as part of Continue On.';
--			outcome: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'The outcome of checking whether we can store an edit session as part of the Continue On flow.' };
+-			outcome: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The outcome of checking whether we can store an edit session as part of the Continue On flow.' };
 -		};
 -
 -		// If the user is already signed in, we should store edit session
@@ -646,8 +640,8 @@ index 000198b..4e767d4 100644
 -		type EvaluateContinueOnDestinationEvent = { outcome: string; selection: string };
 -		type EvaluateContinueOnDestinationClassification = {
 -			owner: 'joyceerhl'; comment: 'Reporting the outcome of evaluating a selected Continue On destination option.';
--			selection: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'The selected Continue On destination option.' };
--			outcome: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'The outcome of evaluating the selected Continue On destination option.' };
+-			selection: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The selected Continue On destination option.' };
+-			outcome: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The outcome of evaluating the selected Continue On destination option.' };
 -		};
 -
 -		try {
@@ -692,8 +686,8 @@ index 000198b..4e767d4 100644
 -		const sortedItems: (ContinueEditSessionItem | IQuickPickSeparator)[] = items.sort((item1, item2) => item1.label.localeCompare(item2.label));
 -		return sortedItems.concat({ type: 'separator' }, new ContinueEditSessionItem(installAdditionalContinueOnOptionsCommand.title, installAdditionalContinueOnOptionsCommand.id));
 -	}
- }
- 
+-}
+-
 -const infoButtonClass = ThemeIcon.asClassName(Codicon.info);
 -class ContinueEditSessionItem implements IQuickPickItem {
 -	public readonly buttons: IQuickInputButton[] | undefined;
@@ -712,8 +706,8 @@ index 000198b..4e767d4 100644
 -			}];
 -		}
 -	}
--}
--
+ }
+ 
 -interface ICommand {
 -	command: string;
 -	group: string;
@@ -841,6 +835,3 @@ index f612c22..5fa39d7 100644
  	private registerResetAuthenticationAction() {
  		const that = this;
  		this._register(registerAction2(class ResetEditSessionAuthenticationAction extends Action2 {
--- 
-2.39.3 (Apple Git-146)
-
