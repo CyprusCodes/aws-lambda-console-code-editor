@@ -11,7 +11,7 @@ This patch removes the functionality that allowed users to move or copy editors 
  3 files changed, 6 insertions(+), 172 deletions(-)
 
 diff --git a/src/vs/workbench/browser/parts/editor/editor.contribution.ts b/src/vs/workbench/browser/parts/editor/editor.contribution.ts
-index 1611076..495bbe6 100644
+index fabc137..29cc6aa 100644
 --- a/src/vs/workbench/browser/parts/editor/editor.contribution.ts
 +++ b/src/vs/workbench/browser/parts/editor/editor.contribution.ts
 @@ -42,16 +42,14 @@ import {
@@ -54,16 +54,16 @@ index 1611076..495bbe6 100644
  MenuRegistry.appendMenuItem(MenuId.EditorTabsBarContext, { submenu: MenuId.EditorTabsBarShowTabsSubmenu, title: localize('tabBar', "Tab Bar"), group: '4_config', order: 10, when: InEditorZenModeContext.negate() });
  MenuRegistry.appendMenuItem(MenuId.EditorTabsBarShowTabsSubmenu, { command: { id: ShowMultipleEditorTabsAction.ID, title: localize('multipleTabs', "Multiple Tabs"), toggled: ContextKeyExpr.equals('config.workbench.editor.showTabs', 'multiple') }, group: '1_config', order: 10 });
  MenuRegistry.appendMenuItem(MenuId.EditorTabsBarShowTabsSubmenu, { command: { id: ShowSingleEditorTabAction.ID, title: localize('singleTab', "Single Tab"), toggled: ContextKeyExpr.equals('config.workbench.editor.showTabs', 'single') }, group: '1_config', order: 20 });
-@@ -401,8 +392,6 @@ MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: SPLIT_ED
+@@ -403,8 +394,6 @@ MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: SPLIT_ED
  MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: SPLIT_EDITOR_RIGHT, title: localize('splitRight', "Split Right") }, group: '5_split', order: 40 });
- MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: SPLIT_EDITOR_IN_GROUP, title: localize('splitInGroup', "Split in Group") }, group: '6_split_in_group', order: 10, when: ActiveEditorCanSplitInGroupContext });
- MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: JOIN_EDITOR_IN_GROUP, title: localize('joinInGroup', "Join in Group") }, group: '6_split_in_group', order: 10, when: SideBySideEditorActiveContext });
+ MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: SPLIT_EDITOR_IN_GROUP, title: localize('splitInGroup', "Split in Group"), precondition: MultipleEditorsSelectedInGroupContext.negate() }, group: '6_split_in_group', order: 10, when: ActiveEditorCanSplitInGroupContext });
+ MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: JOIN_EDITOR_IN_GROUP, title: localize('joinInGroup', "Join in Group"), precondition: MultipleEditorsSelectedInGroupContext.negate() }, group: '6_split_in_group', order: 10, when: SideBySideEditorActiveContext });
 -MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: MOVE_EDITOR_INTO_NEW_WINDOW_COMMAND_ID, title: localize('moveToNewWindow', "Move into New Window") }, group: '7_new_window', order: 10 });
 -MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: COPY_EDITOR_INTO_NEW_WINDOW_COMMAND_ID, title: localize('copyToNewWindow', "Copy into New Window") }, group: '7_new_window', order: 20 });
+ MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { submenu: MenuId.EditorTitleContextShare, title: localize('share', "Share"), group: '11_share', order: -1, when: MultipleEditorsSelectedInGroupContext.negate() });
  
  // Editor Title Menu
- MenuRegistry.appendMenuItem(MenuId.EditorTitle, { command: { id: TOGGLE_DIFF_SIDE_BY_SIDE, title: localize('inlineView', "Inline View"), toggled: ContextKeyExpr.equals('config.diffEditor.renderSideBySide', false) }, group: '1_diff', order: 10, when: ContextKeyExpr.has('isInDiffEditor') });
-@@ -748,30 +737,6 @@ MenuRegistry.appendMenuItem(MenuId.MenubarLayoutMenu, {
+@@ -752,30 +741,6 @@ MenuRegistry.appendMenuItem(MenuId.MenubarLayoutMenu, {
  	order: 1
  });
  
@@ -95,21 +95,21 @@ index 1611076..495bbe6 100644
  	group: '4_layouts',
  	command: {
 diff --git a/src/vs/workbench/browser/parts/editor/editorActions.ts b/src/vs/workbench/browser/parts/editor/editorActions.ts
-index b02d66f..8f60108 100644
+index 3293be1..b375826 100644
 --- a/src/vs/workbench/browser/parts/editor/editorActions.ts
 +++ b/src/vs/workbench/browser/parts/editor/editorActions.ts
 @@ -13,8 +13,8 @@ import { IWorkbenchLayoutService, Parts } from 'vs/workbench/services/layout/bro
  import { GoFilter, IHistoryService } from 'vs/workbench/services/history/common/history';
  import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
  import { ICommandService } from 'vs/platform/commands/common/commands';
--import { CLOSE_EDITOR_COMMAND_ID, MOVE_ACTIVE_EDITOR_COMMAND_ID, ActiveEditorMoveCopyArguments, SPLIT_EDITOR_LEFT, SPLIT_EDITOR_RIGHT, SPLIT_EDITOR_UP, SPLIT_EDITOR_DOWN, splitEditor, LAYOUT_EDITOR_GROUPS_COMMAND_ID, UNPIN_EDITOR_COMMAND_ID, COPY_ACTIVE_EDITOR_COMMAND_ID, SPLIT_EDITOR, resolveCommandsContext, getCommandsContext, TOGGLE_MAXIMIZE_EDITOR_GROUP, MOVE_EDITOR_INTO_NEW_WINDOW_COMMAND_ID, COPY_EDITOR_INTO_NEW_WINDOW_COMMAND_ID, MOVE_EDITOR_GROUP_INTO_NEW_WINDOW_COMMAND_ID, COPY_EDITOR_GROUP_INTO_NEW_WINDOW_COMMAND_ID, NEW_EMPTY_EDITOR_WINDOW_COMMAND_ID as NEW_EMPTY_EDITOR_WINDOW_COMMAND_ID } from 'vs/workbench/browser/parts/editor/editorCommands';
+-import { CLOSE_EDITOR_COMMAND_ID, MOVE_ACTIVE_EDITOR_COMMAND_ID, ActiveEditorMoveCopyArguments, SPLIT_EDITOR_LEFT, SPLIT_EDITOR_RIGHT, SPLIT_EDITOR_UP, SPLIT_EDITOR_DOWN, splitEditor, LAYOUT_EDITOR_GROUPS_COMMAND_ID, UNPIN_EDITOR_COMMAND_ID, COPY_ACTIVE_EDITOR_COMMAND_ID, SPLIT_EDITOR, TOGGLE_MAXIMIZE_EDITOR_GROUP, MOVE_EDITOR_INTO_NEW_WINDOW_COMMAND_ID, COPY_EDITOR_INTO_NEW_WINDOW_COMMAND_ID, MOVE_EDITOR_GROUP_INTO_NEW_WINDOW_COMMAND_ID, COPY_EDITOR_GROUP_INTO_NEW_WINDOW_COMMAND_ID, NEW_EMPTY_EDITOR_WINDOW_COMMAND_ID as NEW_EMPTY_EDITOR_WINDOW_COMMAND_ID } from 'vs/workbench/browser/parts/editor/editorCommands';
 -import { IEditorGroupsService, IEditorGroup, GroupsArrangement, GroupLocation, GroupDirection, preferredSideBySideGroupDirection, IFindGroupScope, GroupOrientation, EditorGroupLayout, GroupsOrder, MergeGroupMode } from 'vs/workbench/services/editor/common/editorGroupsService';
-+import { CLOSE_EDITOR_COMMAND_ID, MOVE_ACTIVE_EDITOR_COMMAND_ID, ActiveEditorMoveCopyArguments, SPLIT_EDITOR_LEFT, SPLIT_EDITOR_RIGHT, SPLIT_EDITOR_UP, SPLIT_EDITOR_DOWN, splitEditor, LAYOUT_EDITOR_GROUPS_COMMAND_ID, UNPIN_EDITOR_COMMAND_ID, COPY_ACTIVE_EDITOR_COMMAND_ID, SPLIT_EDITOR, resolveCommandsContext, getCommandsContext, TOGGLE_MAXIMIZE_EDITOR_GROUP, NEW_EMPTY_EDITOR_WINDOW_COMMAND_ID as NEW_EMPTY_EDITOR_WINDOW_COMMAND_ID } from 'vs/workbench/browser/parts/editor/editorCommands';
++import { CLOSE_EDITOR_COMMAND_ID, MOVE_ACTIVE_EDITOR_COMMAND_ID, ActiveEditorMoveCopyArguments, SPLIT_EDITOR_LEFT, SPLIT_EDITOR_RIGHT, SPLIT_EDITOR_UP, SPLIT_EDITOR_DOWN, splitEditor, LAYOUT_EDITOR_GROUPS_COMMAND_ID, UNPIN_EDITOR_COMMAND_ID, COPY_ACTIVE_EDITOR_COMMAND_ID, SPLIT_EDITOR, TOGGLE_MAXIMIZE_EDITOR_GROUP, NEW_EMPTY_EDITOR_WINDOW_COMMAND_ID as NEW_EMPTY_EDITOR_WINDOW_COMMAND_ID } from 'vs/workbench/browser/parts/editor/editorCommands';
 +import { IEditorGroupsService, IEditorGroup, GroupsArrangement, GroupLocation, GroupDirection, preferredSideBySideGroupDirection, IFindGroupScope, GroupOrientation, EditorGroupLayout, GroupsOrder } from 'vs/workbench/services/editor/common/editorGroupsService';
  import { IEditorService } from 'vs/workbench/services/editor/common/editorService';
  import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
  import { IWorkspacesService } from 'vs/platform/workspaces/common/workspaces';
-@@ -30,13 +30,12 @@ import { Action2, IAction2Options, MenuId } from 'vs/platform/actions/common/act
+@@ -30,12 +30,11 @@ import { Action2, IAction2Options, MenuId } from 'vs/platform/actions/common/act
  import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
  import { ContextKeyExpr } from 'vs/platform/contextkey/common/contextkey';
  import { KeyChord, KeyCode, KeyMod } from 'vs/base/common/keyCodes';
@@ -119,13 +119,12 @@ index b02d66f..8f60108 100644
  import { Categories } from 'vs/platform/action/common/actionCommonCategories';
 -import { ActiveEditorAvailableEditorIdsContext, ActiveEditorContext, ActiveEditorGroupEmptyContext, AuxiliaryBarVisibleContext, EditorPartMaximizedEditorGroupContext, EditorPartMultipleEditorGroupsContext, IsAuxiliaryWindowFocusedContext, MultipleEditorGroupsContext, SideBarVisibleContext } from 'vs/workbench/common/contextkeys';
 +import { ActiveEditorAvailableEditorIdsContext, ActiveEditorGroupEmptyContext, AuxiliaryBarVisibleContext, EditorPartMaximizedEditorGroupContext, EditorPartMultipleEditorGroupsContext, IsAuxiliaryWindowFocusedContext, MultipleEditorGroupsContext, SideBarVisibleContext } from 'vs/workbench/common/contextkeys';
- import { URI } from 'vs/base/common/uri';
  import { getActiveDocument } from 'vs/base/browser/dom';
 -import { ICommandActionTitle } from 'vs/platform/action/common/action';
- 
- class ExecuteCommandAction extends Action2 {
- 
-@@ -2493,130 +2492,6 @@ export class ReOpenInTextEditorAction extends Action2 {
+ import { IProgressService, ProgressLocation } from 'vs/platform/progress/common/progress';
+ import { resolveCommandsContext } from 'vs/workbench/browser/parts/editor/editorCommandsContext';
+ import { IListService } from 'vs/platform/list/browser/listService';
+@@ -2524,136 +2523,6 @@ export class ReOpenInTextEditorAction extends Action2 {
  	}
  }
  
@@ -148,21 +147,27 @@ index b02d66f..8f60108 100644
 -		});
 -	}
 -
--	override async run(accessor: ServicesAccessor, resourceOrContext?: URI | IEditorCommandsContext, context?: IEditorCommandsContext) {
+-	override async run(accessor: ServicesAccessor, ...args: unknown[]) {
 -		const editorGroupService = accessor.get(IEditorGroupsService);
--
--		const { group, editor } = resolveCommandsContext(editorGroupService, getCommandsContext(resourceOrContext, context));
--		if (group && editor) {
--			const auxiliaryEditorPart = await editorGroupService.createAuxiliaryEditorPart();
--
--			if (this.move) {
--				group.moveEditor(editor, auxiliaryEditorPart.activeGroup);
--			} else {
--				group.copyEditor(editor, auxiliaryEditorPart.activeGroup);
--			}
--
--			auxiliaryEditorPart.activeGroup.focus();
+-		const resolvedContext = resolveCommandsContext(args, accessor.get(IEditorService), editorGroupService, accessor.get(IListService));
+-		if (!resolvedContext.groupedEditors.length) {
+-			return;
 -		}
+-
+-		const auxiliaryEditorPart = await editorGroupService.createAuxiliaryEditorPart();
+-
+-		// only single group supported for move/copy for now
+-		const { group, editors } = resolvedContext.groupedEditors[0];
+-		const options = { preserveFocus: resolvedContext.preserveFocus };
+-		const editorsWithOptions = editors.map(editor => ({ editor, options }));
+-
+-		if (this.move) {
+-			group.moveEditors(editorsWithOptions, auxiliaryEditorPart.activeGroup);
+-		} else {
+-			group.copyEditors(editorsWithOptions, auxiliaryEditorPart.activeGroup);
+-		}
+-
+-		auxiliaryEditorPart.activeGroup.focus();
 -	}
 -}
 -
@@ -257,10 +262,10 @@ index b02d66f..8f60108 100644
  
  	constructor() {
 diff --git a/src/vs/workbench/browser/parts/editor/editorCommands.ts b/src/vs/workbench/browser/parts/editor/editorCommands.ts
-index 89795c7..607825f 100644
+index 10405ef..3a9e93d 100644
 --- a/src/vs/workbench/browser/parts/editor/editorCommands.ts
 +++ b/src/vs/workbench/browser/parts/editor/editorCommands.ts
-@@ -90,12 +90,6 @@ export const FOCUS_BELOW_GROUP_WITHOUT_WRAP_COMMAND_ID = 'workbench.action.focus
+@@ -88,12 +88,6 @@ export const FOCUS_BELOW_GROUP_WITHOUT_WRAP_COMMAND_ID = 'workbench.action.focus
  
  export const OPEN_EDITOR_AT_INDEX_COMMAND_ID = 'workbench.action.openEditorAtIndex';
  
@@ -273,6 +278,3 @@ index 89795c7..607825f 100644
  export const NEW_EMPTY_EDITOR_WINDOW_COMMAND_ID = 'workbench.action.newEmptyEditorWindow';
  
  export const API_OPEN_EDITOR_COMMAND_ID = '_workbench.open';
--- 
-2.40.1
-
