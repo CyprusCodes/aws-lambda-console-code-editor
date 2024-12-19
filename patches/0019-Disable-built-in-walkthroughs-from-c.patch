@@ -11,7 +11,7 @@ This patch disables the built-in walkthroughs and welcome page functionality in 
  2 files changed, 464 insertions(+), 473 deletions(-)
 
 diff --git a/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.contribution.ts b/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.contribution.ts
-index 66b9062..78e3779 100644
+index c581ac0..1d30e5e 100644
 --- a/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.contribution.ts
 +++ b/src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.contribution.ts
 @@ -4,15 +4,13 @@
@@ -42,38 +42,38 @@ index 66b9062..78e3779 100644
 -				id: MenuId.MenubarHelpMenu,
 -				group: '1_welcome',
 -				order: 1,
--			}
+-			},
 +			f1: false,
 +			// menu: {
 +			// 	id: MenuId.MenubarHelpMenu,
 +			// 	group: '1_welcome',
 +			// 	order: 1,
-+			// }
- 		});
- 	}
- 
-@@ -63,13 +61,13 @@ registerAction2(class extends Action2 {
++			// },
+ 			metadata: {
+ 				description: localize2('minWelcomeDescription', 'Opens a Walkthrough to help you get started in VS Code.')
+ 			}
+@@ -66,13 +64,13 @@ registerAction2(class extends Action2 {
  			const selectedStep = typeof walkthroughID === 'string' ? undefined : walkthroughID.category + '#' + walkthroughID.step;
  
  			// We're trying to open the welcome page from the Help menu
 -			if (!selectedCategory && !selectedStep) {
 -				editorService.openEditor({
 -					resource: GettingStartedInput.RESOURCE,
--					options: <GettingStartedEditorOptions>{ preserveFocus: toSide ?? false }
+-					options: { preserveFocus: toSide ?? false }
 -				}, toSide ? SIDE_GROUP : undefined);
 -				return;
 -			}
 +			// if (!selectedCategory && !selectedStep) {
 +			// 	editorService.openEditor({
 +			// 		resource: GettingStartedInput.RESOURCE,
-+			// 		options: <GettingStartedEditorOptions>{ preserveFocus: toSide ?? false }
++			// 		options: { preserveFocus: toSide ?? false }
 +			// 	}, toSide ? SIDE_GROUP : undefined);
 +			// 	return;
 +			// }
  
  			// Try first to select the walkthrough on an active welcome page with no selected walkthrough
  			for (const group of editorGroupsService.groups) {
-@@ -140,30 +138,30 @@ Registry.as<IEditorPaneRegistry>(EditorExtensions.EditorPane).registerEditorPane
+@@ -144,30 +142,30 @@ Registry.as<IEditorPaneRegistry>(EditorExtensions.EditorPane).registerEditorPane
  
  const category = localize2('welcome', "Welcome");
  
@@ -127,7 +127,7 @@ index 66b9062..78e3779 100644
  
  CommandsRegistry.registerCommand({
  	id: 'walkthroughs.selectStep',
-@@ -316,16 +314,14 @@ configurationRegistry.registerConfiguration({
+@@ -320,16 +318,14 @@ configurationRegistry.registerConfiguration({
  		'workbench.startupEditor': {
  			'scope': ConfigurationScope.RESOURCE,
  			'type': 'string',
@@ -147,7 +147,7 @@ index 66b9062..78e3779 100644
  		},
  		'workbench.welcomePage.preferReducedMotion': {
 diff --git a/src/vs/workbench/contrib/welcomeGettingStarted/common/gettingStartedContent.ts b/src/vs/workbench/contrib/welcomeGettingStarted/common/gettingStartedContent.ts
-index e43f62d..a6e65ef 100644
+index 8f1449c..489ee2b 100644
 --- a/src/vs/workbench/contrib/welcomeGettingStarted/common/gettingStartedContent.ts
 +++ b/src/vs/workbench/contrib/welcomeGettingStarted/common/gettingStartedContent.ts
 @@ -5,15 +5,10 @@
@@ -420,7 +420,7 @@ index e43f62d..a6e65ef 100644
 -				{
 -					id: 'extensionsWeb',
 -					title: localize('gettingStarted.extensions.title', "Code with extensions"),
--					description: localize('gettingStarted.extensionsWeb.description.interpolated', "Extensions are VS Code's power-ups. A growing number are becoming available in the web.\n{0}", Button(localize('browsePopular', "Browse Popular Web Extensions"), 'command:workbench.extensions.action.showPopularExtensions')),
+-					description: localize('gettingStarted.extensionsWeb.description.interpolated', "Extensions are VS Code's power-ups. A growing number are becoming available in the web.\n{0}", Button(localize('browsePopularWeb', "Browse Popular Web Extensions"), 'command:workbench.extensions.action.showPopularExtensions')),
 -					when: 'workspacePlatform == \'webworker\'',
 -					media: {
 -						type: 'svg', altText: 'VS Code extension marketplace with featured language extensions', path: 'extensions-web.svg'
@@ -519,7 +519,7 @@ index e43f62d..a6e65ef 100644
 +	// 			{
 +	// 				id: 'extensionsWeb',
 +	// 				title: localize('gettingStarted.extensions.title', "Code with extensions"),
-+	// 				description: localize('gettingStarted.extensionsWeb.description.interpolated', "Extensions are VS Code's power-ups. A growing number are becoming available in the web.\n{0}", Button(localize('browsePopular', "Browse Popular Web Extensions"), 'command:workbench.extensions.action.showPopularExtensions')),
++	// 				description: localize('gettingStarted.extensionsWeb.description.interpolated', "Extensions are VS Code's power-ups. A growing number are becoming available in the web.\n{0}", Button(localize('browsePopularWeb', "Browse Popular Web Extensions"), 'command:workbench.extensions.action.showPopularExtensions')),
 +	// 				when: 'workspacePlatform == \'webworker\'',
 +	// 				media: {
 +	// 					type: 'svg', altText: 'VS Code extension marketplace with featured language extensions', path: 'extensions-web.svg'
@@ -628,7 +628,7 @@ index e43f62d..a6e65ef 100644
 -				{
 -					id: 'extensionsWebWeb',
 -					title: localize('gettingStarted.extensions.title', "Code with extensions"),
--					description: localize('gettingStarted.extensionsWeb.description.interpolated', "Extensions are VS Code's power-ups. A growing number are becoming available in the web.\n{0}", Button(localize('browsePopular', "Browse Popular Web Extensions"), 'command:workbench.extensions.action.showPopularExtensions')),
+-					description: localize('gettingStarted.extensionsWeb.description.interpolated', "Extensions are VS Code's power-ups. A growing number are becoming available in the web.\n{0}", Button(localize('browsePopularWeb', "Browse Popular Web Extensions"), 'command:workbench.extensions.action.showPopularExtensions')),
 -					when: 'workspacePlatform == \'webworker\'',
 -					media: {
 -						type: 'svg', altText: 'VS Code extension marketplace with featured language extensions', path: 'extensions-web.svg'
@@ -713,7 +713,7 @@ index e43f62d..a6e65ef 100644
 +	// 			{
 +	// 				id: 'extensionsWebWeb',
 +	// 				title: localize('gettingStarted.extensions.title', "Code with extensions"),
-+	// 				description: localize('gettingStarted.extensionsWeb.description.interpolated', "Extensions are VS Code's power-ups. A growing number are becoming available in the web.\n{0}", Button(localize('browsePopular', "Browse Popular Web Extensions"), 'command:workbench.extensions.action.showPopularExtensions')),
++	// 				description: localize('gettingStarted.extensionsWeb.description.interpolated', "Extensions are VS Code's power-ups. A growing number are becoming available in the web.\n{0}", Button(localize('browsePopularWeb', "Browse Popular Web Extensions"), 'command:workbench.extensions.action.showPopularExtensions')),
 +	// 				when: 'workspacePlatform == \'webworker\'',
 +	// 				media: {
 +	// 					type: 'svg', altText: 'VS Code extension marketplace with featured language extensions', path: 'extensions-web.svg'
@@ -778,7 +778,7 @@ index e43f62d..a6e65ef 100644
 -				{
 -					id: 'extensions',
 -					title: localize('gettingStarted.extensions.title', "Code with extensions"),
--					description: localize('gettingStarted.extensions.description.interpolated', "Extensions are VS Code's power-ups. They range from handy productivity hacks, expanding out-of-the-box features, to adding completely new capabilities.\n{0}", Button(localize('browseRecommended', "Browse Recommended Extensions"), 'command:workbench.extensions.action.showRecommendedExtensions')),
+-					description: localize('gettingStarted.extensions.description.interpolated', "Extensions are VS Code's power-ups. They range from handy productivity hacks, expanding out-of-the-box features, to adding completely new capabilities.\n{0}", Button(localize('browsePopular', "Browse Popular Extensions"), 'command:workbench.extensions.action.showPopularExtensions')),
 -					when: 'workspacePlatform != \'webworker\'',
 -					media: {
 -						type: 'svg', altText: 'VS Code extension marketplace with featured language extensions', path: 'extensions.svg'
@@ -853,7 +853,7 @@ index e43f62d..a6e65ef 100644
 +	// 			{
 +	// 				id: 'extensions',
 +	// 				title: localize('gettingStarted.extensions.title', "Code with extensions"),
-+	// 				description: localize('gettingStarted.extensions.description.interpolated', "Extensions are VS Code's power-ups. They range from handy productivity hacks, expanding out-of-the-box features, to adding completely new capabilities.\n{0}", Button(localize('browseRecommended', "Browse Recommended Extensions"), 'command:workbench.extensions.action.showRecommendedExtensions')),
++	// 				description: localize('gettingStarted.extensions.description.interpolated', "Extensions are VS Code's power-ups. They range from handy productivity hacks, expanding out-of-the-box features, to adding completely new capabilities.\n{0}", Button(localize('browsePopular', "Browse Popular Extensions"), 'command:workbench.extensions.action.showPopularExtensions')),
 +	// 				when: 'workspacePlatform != \'webworker\'',
 +	// 				media: {
 +	// 					type: 'svg', altText: 'VS Code extension marketplace with featured language extensions', path: 'extensions.svg'
@@ -1022,6 +1022,3 @@ index e43f62d..a6e65ef 100644
 +	// 	}
 +	// }
  ];
--- 
-2.40.1
-
