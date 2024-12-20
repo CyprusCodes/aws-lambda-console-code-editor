@@ -19,7 +19,7 @@ This patch disables or modifies various features and functionalities related to 
  11 files changed, 391 insertions(+), 500 deletions(-)
 
 diff --git a/extensions/merge-conflict/package.json b/extensions/merge-conflict/package.json
-index f55fb26..737f842 100644
+index cdda46f..afb50f0 100644
 --- a/extensions/merge-conflict/package.json
 +++ b/extensions/merge-conflict/package.json
 @@ -29,80 +29,6 @@
@@ -643,7 +643,7 @@ index a2b940b..1c33004 100644
 +	// }
  }
 diff --git a/extensions/references-view/package.json b/extensions/references-view/package.json
-index 2283327..3952cb6 100644
+index 9566a96..1ac066c 100644
 --- a/extensions/references-view/package.json
 +++ b/extensions/references-view/package.json
 @@ -120,23 +120,6 @@
@@ -847,7 +847,7 @@ index 4cd4786..ba21835 100644
  
  	function setInput(input: SymbolTreeInput<unknown>) {
 diff --git a/src/vs/workbench/browser/actions/windowActions.ts b/src/vs/workbench/browser/actions/windowActions.ts
-index 4020ac2..4717e32 100644
+index 26c0b61..fabf99d 100644
 --- a/src/vs/workbench/browser/actions/windowActions.ts
 +++ b/src/vs/workbench/browser/actions/windowActions.ts
 @@ -7,7 +7,7 @@ import { localize, localize2 } from 'vs/nls';
@@ -959,7 +959,7 @@ index 4020ac2..4717e32 100644
 +// 	order: 4
 +// });
 diff --git a/src/vs/workbench/contrib/authentication/browser/authentication.contribution.ts b/src/vs/workbench/contrib/authentication/browser/authentication.contribution.ts
-index 36d4e4e..40bf219 100644
+index 4e0a9ab..70fef70 100644
 --- a/src/vs/workbench/contrib/authentication/browser/authentication.contribution.ts
 +++ b/src/vs/workbench/contrib/authentication/browser/authentication.contribution.ts
 @@ -19,7 +19,6 @@ import { AuthenticationProviderInformation, IAuthenticationService } from 'vs/wo
@@ -970,29 +970,29 @@ index 36d4e4e..40bf219 100644
  
  const codeExchangeProxyCommand = CommandsRegistry.registerCommand('workbench.getCodeExchangeProxyEndpoints', function (accessor, _) {
  	const environmentService = accessor.get(IBrowserWorkbenchEnvironmentService);
-@@ -190,7 +189,7 @@ export class AuthenticationContribution extends Disposable implements IWorkbench
+@@ -193,7 +192,7 @@ export class AuthenticationContribution extends Disposable implements IWorkbench
  
  	private _registerActions(): void {
  		this._register(registerAction2(SignOutOfAccountAction));
 -		this._register(registerAction2(ManageTrustedExtensionsForAccountAction));
 +		// this._register(registerAction2(ManageTrustedExtensionsForAccountAction));
  	}
- }
  
+ 	private _clearPlaceholderMenuItem(): void {
 diff --git a/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts b/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
-index 7f91c5e..06dad7e 100644
+index 64ec809..f6fd554 100644
 --- a/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
 +++ b/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
 @@ -10,7 +10,7 @@ import { MenuId, MenuRegistry, registerAction2 } from 'vs/platform/actions/commo
  import { ICommandAction } from 'vs/platform/action/common/action';
  import { KeyMod, KeyCode } from 'vs/base/common/keyCodes';
  import { openWindowCommand, newWindowCommand } from 'vs/workbench/contrib/files/browser/fileCommands';
--import { COPY_PATH_COMMAND_ID, REVEAL_IN_EXPLORER_COMMAND_ID, OPEN_TO_SIDE_COMMAND_ID, REVERT_FILE_COMMAND_ID, SAVE_FILE_COMMAND_ID, SAVE_FILE_LABEL, SAVE_FILE_AS_COMMAND_ID, SAVE_FILE_AS_LABEL, SAVE_ALL_IN_GROUP_COMMAND_ID, OpenEditorsGroupContext, COMPARE_WITH_SAVED_COMMAND_ID, COMPARE_RESOURCE_COMMAND_ID, SELECT_FOR_COMPARE_COMMAND_ID, ResourceSelectedForCompareContext, OpenEditorsDirtyEditorContext, COMPARE_SELECTED_COMMAND_ID, REMOVE_ROOT_FOLDER_COMMAND_ID, REMOVE_ROOT_FOLDER_LABEL, SAVE_FILES_COMMAND_ID, COPY_RELATIVE_PATH_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_LABEL, OpenEditorsReadonlyEditorContext, OPEN_WITH_EXPLORER_COMMAND_ID, NEW_UNTITLED_FILE_COMMAND_ID, NEW_UNTITLED_FILE_LABEL, SAVE_ALL_COMMAND_ID } from 'vs/workbench/contrib/files/browser/fileConstants';
+-import { COPY_PATH_COMMAND_ID, REVEAL_IN_EXPLORER_COMMAND_ID, OPEN_TO_SIDE_COMMAND_ID, REVERT_FILE_COMMAND_ID, SAVE_FILE_COMMAND_ID, SAVE_FILE_LABEL, SAVE_FILE_AS_COMMAND_ID, SAVE_FILE_AS_LABEL, SAVE_ALL_IN_GROUP_COMMAND_ID, OpenEditorsGroupContext, COMPARE_WITH_SAVED_COMMAND_ID, COMPARE_RESOURCE_COMMAND_ID, SELECT_FOR_COMPARE_COMMAND_ID, ResourceSelectedForCompareContext, OpenEditorsDirtyEditorContext, COMPARE_SELECTED_COMMAND_ID, REMOVE_ROOT_FOLDER_COMMAND_ID, REMOVE_ROOT_FOLDER_LABEL, SAVE_FILES_COMMAND_ID, COPY_RELATIVE_PATH_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_LABEL, OpenEditorsReadonlyEditorContext, OPEN_WITH_EXPLORER_COMMAND_ID, NEW_UNTITLED_FILE_COMMAND_ID, NEW_UNTITLED_FILE_LABEL, SAVE_ALL_COMMAND_ID, OpenEditorsSelectedFileOrUntitledContext } from 'vs/workbench/contrib/files/browser/fileConstants';
 +import { COPY_PATH_COMMAND_ID, REVEAL_IN_EXPLORER_COMMAND_ID, OPEN_TO_SIDE_COMMAND_ID, REVERT_FILE_COMMAND_ID, SAVE_FILE_COMMAND_ID, SAVE_FILE_LABEL, SAVE_FILE_AS_COMMAND_ID, SAVE_FILE_AS_LABEL, SAVE_ALL_IN_GROUP_COMMAND_ID, OpenEditorsGroupContext, COMPARE_WITH_SAVED_COMMAND_ID, COMPARE_RESOURCE_COMMAND_ID, SELECT_FOR_COMPARE_COMMAND_ID, ResourceSelectedForCompareContext, OpenEditorsDirtyEditorContext, COMPARE_SELECTED_COMMAND_ID, REMOVE_ROOT_FOLDER_COMMAND_ID, REMOVE_ROOT_FOLDER_LABEL, SAVE_FILES_COMMAND_ID, COPY_RELATIVE_PATH_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_LABEL, OpenEditorsReadonlyEditorContext, OPEN_WITH_EXPLORER_COMMAND_ID, NEW_UNTITLED_FILE_COMMAND_ID, NEW_UNTITLED_FILE_LABEL } from 'vs/workbench/contrib/files/browser/fileConstants';
  import { CommandsRegistry, ICommandHandler } from 'vs/platform/commands/common/commands';
  import { ContextKeyExpr, ContextKeyExpression } from 'vs/platform/contextkey/common/contextkey';
  import { KeybindingsRegistry, KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegistry';
-@@ -463,16 +463,16 @@ MenuRegistry.appendMenuItem(MenuId.ExplorerContext, {
+@@ -474,16 +474,16 @@ MenuRegistry.appendMenuItem(MenuId.ExplorerContext, {
  	when: ExplorerFolderContext
  });
  
@@ -1019,7 +1019,7 @@ index 7f91c5e..06dad7e 100644
  
  MenuRegistry.appendMenuItem(MenuId.ExplorerContext, {
  	group: 'navigation',
-@@ -666,35 +666,35 @@ MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
+@@ -677,35 +677,35 @@ MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
  	order: 1
  });
  
@@ -1032,16 +1032,7 @@ index 7f91c5e..06dad7e 100644
 -	},
 -	order: 1
 -});
-+// MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
-+// 	group: '4_save',
-+// 	command: {
-+// 		id: SAVE_FILE_COMMAND_ID,
-+// 		title: nls.localize({ key: 'miSave', comment: ['&& denotes a mnemonic'] }, "&&Save"),
-+// 		precondition: ContextKeyExpr.or(ActiveEditorContext, ContextKeyExpr.and(FoldersViewVisibleContext, SidebarFocusContext))
-+// 	},
-+// 	order: 1
-+// });
- 
+-
 -MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
 -	group: '4_save',
 -	command: {
@@ -1051,16 +1042,7 @@ index 7f91c5e..06dad7e 100644
 -	},
 -	order: 2
 -});
-+// MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
-+// 	group: '4_save',
-+// 	command: {
-+// 		id: SAVE_FILE_AS_COMMAND_ID,
-+// 		title: nls.localize({ key: 'miSaveAs', comment: ['&& denotes a mnemonic'] }, "Save &&As..."),
-+// 		precondition: ContextKeyExpr.or(ActiveEditorContext, ContextKeyExpr.and(FoldersViewVisibleContext, SidebarFocusContext))
-+// 	},
-+// 	order: 2
-+// });
- 
+-
 -MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
 -	group: '4_save',
 -	command: {
@@ -1070,6 +1052,26 @@ index 7f91c5e..06dad7e 100644
 -	},
 -	order: 3
 -});
++// MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
++// 	group: '4_save',
++// 	command: {
++// 		id: SAVE_FILE_COMMAND_ID,
++// 		title: nls.localize({ key: 'miSave', comment: ['&& denotes a mnemonic'] }, "&&Save"),
++// 		precondition: ContextKeyExpr.or(ActiveEditorContext, ContextKeyExpr.and(FoldersViewVisibleContext, SidebarFocusContext))
++// 	},
++// 	order: 1
++// });
++
++// MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
++// 	group: '4_save',
++// 	command: {
++// 		id: SAVE_FILE_AS_COMMAND_ID,
++// 		title: nls.localize({ key: 'miSaveAs', comment: ['&& denotes a mnemonic'] }, "Save &&As..."),
++// 		precondition: ContextKeyExpr.or(ActiveEditorContext, ContextKeyExpr.and(FoldersViewVisibleContext, SidebarFocusContext))
++// 	},
++// 	order: 2
++// });
++
 +// MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
 +// 	group: '4_save',
 +// 	command: {
@@ -1083,7 +1085,7 @@ index 7f91c5e..06dad7e 100644
  MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
  	group: '5_autosave',
 diff --git a/src/vs/workbench/contrib/mergeEditor/browser/commands/commands.ts b/src/vs/workbench/contrib/mergeEditor/browser/commands/commands.ts
-index 39659a1..668129c 100644
+index 5b62051..ba5c0bf 100644
 --- a/src/vs/workbench/contrib/mergeEditor/browser/commands/commands.ts
 +++ b/src/vs/workbench/contrib/mergeEditor/browser/commands/commands.ts
 @@ -14,13 +14,13 @@ import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
@@ -1170,6 +1172,3 @@ index 75a7ee7..81e4586 100644
  
  // Dev Commands
  registerAction2(MergeEditorCopyContentsToJSON);
--- 
-2.40.1
-
