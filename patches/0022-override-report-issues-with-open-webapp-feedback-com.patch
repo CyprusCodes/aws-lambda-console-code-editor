@@ -8,7 +8,7 @@ Subject: [PATCH] override report issues with open webapp feedback command
  1 file changed, 2 insertions(+), 9 deletions(-)
 
 diff --git a/src/vs/workbench/contrib/issue/common/issue.contribution.ts b/src/vs/workbench/contrib/issue/common/issue.contribution.ts
-index b3e9a06..c4be8c5 100644
+index b3e9a06..a1853e2 100644
 --- a/src/vs/workbench/contrib/issue/common/issue.contribution.ts
 +++ b/src/vs/workbench/contrib/issue/common/issue.contribution.ts
 @@ -7,7 +7,7 @@ import { localize, localize2 } from 'vs/nls';
@@ -20,9 +20,22 @@ index b3e9a06..c4be8c5 100644
  import { IProductService } from 'vs/platform/product/common/productService';
  import { IWorkbenchContribution } from 'vs/workbench/common/contributions';
  import { IWorkbenchIssueService, IssueReporterData } from 'vs/workbench/contrib/issue/common/issue';
-@@ -79,7 +79,7 @@ export class BaseIssueContribution extends Disposable implements IWorkbenchContr
- 							? { extensionId: args[0] }
- 							: args ?? {};
+@@ -72,14 +72,14 @@ export class BaseIssueContribution extends Disposable implements IWorkbenchContr
+ 		this._register(CommandsRegistry.registerCommand({
+ 			id: OpenIssueReporterActionId,
+ 			handler: function (accessor, args?: string | [string] | OpenIssueReporterArgs) {
+-				const data: Partial<IssueReporterData> =
+-					typeof args === 'string'
+-						? { extensionId: args }
+-						: Array.isArray(args)
+-							? { extensionId: args[0] }
+-							: args ?? {};
++				// const data: Partial<IssueReporterData> =
++				// 	typeof args === 'string'
++				// 		? { extensionId: args }
++				// 		: Array.isArray(args)
++				// 			? { extensionId: args[0] }
++				// 			: args ?? {};
  
 -				return accessor.get(IWorkbenchIssueService).openReporter(data);
 +				return accessor.get(ICommandService).executeCommand('cmnd-cloud.reportIssue');
