@@ -10,7 +10,7 @@ Subject: [PATCH] remove import/export profiles and revert file menu items in
  2 files changed, 4 insertions(+), 203 deletions(-)
 
 diff --git a/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts b/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
-index 06dad7e..05ffbe8 100644
+index 08869bd..7505e9d 100644
 --- a/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
 +++ b/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
 @@ -10,7 +10,7 @@ import { MenuId, MenuRegistry, registerAction2 } from 'vs/platform/actions/commo
@@ -18,7 +18,7 @@ index 06dad7e..05ffbe8 100644
  import { KeyMod, KeyCode } from 'vs/base/common/keyCodes';
  import { openWindowCommand, newWindowCommand } from 'vs/workbench/contrib/files/browser/fileCommands';
 -import { COPY_PATH_COMMAND_ID, REVEAL_IN_EXPLORER_COMMAND_ID, OPEN_TO_SIDE_COMMAND_ID, REVERT_FILE_COMMAND_ID, SAVE_FILE_COMMAND_ID, SAVE_FILE_LABEL, SAVE_FILE_AS_COMMAND_ID, SAVE_FILE_AS_LABEL, SAVE_ALL_IN_GROUP_COMMAND_ID, OpenEditorsGroupContext, COMPARE_WITH_SAVED_COMMAND_ID, COMPARE_RESOURCE_COMMAND_ID, SELECT_FOR_COMPARE_COMMAND_ID, ResourceSelectedForCompareContext, OpenEditorsDirtyEditorContext, COMPARE_SELECTED_COMMAND_ID, REMOVE_ROOT_FOLDER_COMMAND_ID, REMOVE_ROOT_FOLDER_LABEL, SAVE_FILES_COMMAND_ID, COPY_RELATIVE_PATH_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_LABEL, OpenEditorsReadonlyEditorContext, OPEN_WITH_EXPLORER_COMMAND_ID, NEW_UNTITLED_FILE_COMMAND_ID, NEW_UNTITLED_FILE_LABEL } from 'vs/workbench/contrib/files/browser/fileConstants';
-+import { COPY_PATH_COMMAND_ID, REVEAL_IN_EXPLORER_COMMAND_ID, OPEN_TO_SIDE_COMMAND_ID, SAVE_FILE_COMMAND_ID, SAVE_FILE_LABEL, SAVE_FILE_AS_COMMAND_ID, SAVE_FILE_AS_LABEL, SAVE_ALL_IN_GROUP_COMMAND_ID, OpenEditorsGroupContext, COMPARE_WITH_SAVED_COMMAND_ID, COMPARE_RESOURCE_COMMAND_ID, SELECT_FOR_COMPARE_COMMAND_ID, ResourceSelectedForCompareContext, OpenEditorsDirtyEditorContext, COMPARE_SELECTED_COMMAND_ID, REMOVE_ROOT_FOLDER_COMMAND_ID, REMOVE_ROOT_FOLDER_LABEL, SAVE_FILES_COMMAND_ID, COPY_RELATIVE_PATH_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_LABEL, OpenEditorsReadonlyEditorContext, OPEN_WITH_EXPLORER_COMMAND_ID, NEW_UNTITLED_FILE_COMMAND_ID, NEW_UNTITLED_FILE_LABEL } from 'vs/workbench/contrib/files/browser/fileConstants';
++import { COPY_PATH_COMMAND_ID, REVEAL_IN_EXPLORER_COMMAND_ID, OPEN_TO_SIDE_COMMAND_ID, SAVE_FILE_COMMAND_ID, SAVE_FILE_LABEL, SAVE_FILE_AS_COMMAND_ID, SAVE_FILE_AS_LABEL, SAVE_ALL_IN_GROUP_COMMAND_ID, OpenEditorsGroupContext, COMPARE_WITH_SAVED_COMMAND_ID, COMPARE_RESOURCE_COMMAND_ID, SELECT_FOR_COMPARE_COMMAND_ID, ResourceSelectedForCompareContext, OpenEditorsDirtyEditorContext, COMPARE_SELECTED_COMMAND_ID, REMOVE_ROOT_FOLDER_COMMAND_ID, REMOVE_ROOT_FOLDER_LABEL, SAVE_FILES_COMMAND_ID, COPY_RELATIVE_PATH_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_LABEL, OpenEditorsReadonlyEditorContext, OPEN_WITH_EXPLORER_COMMAND_ID, NEW_UNTITLED_FILE_COMMAND_ID, NEW_UNTITLED_FILE_LABEL, OpenEditorsSelectedFileOrUntitledContext } from 'vs/workbench/contrib/files/browser/fileConstants';
  import { CommandsRegistry, ICommandHandler } from 'vs/platform/commands/common/commands';
  import { ContextKeyExpr, ContextKeyExpression } from 'vs/platform/contextkey/common/contextkey';
  import { KeybindingsRegistry, KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegistry';
@@ -27,11 +27,11 @@ index 06dad7e..05ffbe8 100644
  import { WorkbenchListDoubleSelection } from 'vs/platform/list/browser/listService';
  import { Schemas } from 'vs/base/common/network';
 -import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext } from 'vs/workbench/common/contextkeys';
-+import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext } from 'vs/workbench/common/contextkeys';
++import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from 'vs/workbench/common/contextkeys';
  import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
  import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
  import { ThemeIcon } from 'vs/base/common/themables';
-@@ -237,12 +237,6 @@ appendToCommandPalette({
+@@ -238,12 +238,6 @@ appendToCommandPalette({
  	category: Categories.File
  });
  
@@ -44,7 +44,7 @@ index 06dad7e..05ffbe8 100644
  appendToCommandPalette({
  	id: COMPARE_WITH_SAVED_COMMAND_ID,
  	title: nls.localize2('compareActiveWithSaved', "Compare Active File with Saved"),
-@@ -336,26 +330,6 @@ MenuRegistry.appendMenuItem(MenuId.OpenEditorsContext, {
+@@ -340,26 +334,6 @@ MenuRegistry.appendMenuItem(MenuId.OpenEditorsContext, {
  	)
  });
  
@@ -71,7 +71,7 @@ index 06dad7e..05ffbe8 100644
  MenuRegistry.appendMenuItem(MenuId.OpenEditorsContext, {
  	group: '2_save',
  	order: 30,
-@@ -706,21 +680,6 @@ MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
+@@ -717,21 +691,6 @@ MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
  	order: 1
  });
  
@@ -94,10 +94,10 @@ index 06dad7e..05ffbe8 100644
  	group: '6_close',
  	command: {
 diff --git a/src/vs/workbench/contrib/userDataProfile/browser/userDataProfile.ts b/src/vs/workbench/contrib/userDataProfile/browser/userDataProfile.ts
-index e213af6..33c8b16 100644
+index eb549ac..d4eb3e9 100644
 --- a/src/vs/workbench/contrib/userDataProfile/browser/userDataProfile.ts
 +++ b/src/vs/workbench/contrib/userDataProfile/browser/userDataProfile.ts
-@@ -12,19 +12,16 @@ import { ContextKeyExpr, IContextKey, IContextKeyService } from 'vs/platform/con
+@@ -12,15 +12,13 @@ import { ContextKeyExpr, IContextKey, IContextKeyService } from 'vs/platform/con
  import { IUserDataProfile, IUserDataProfilesService } from 'vs/platform/userDataProfile/common/userDataProfile';
  import { IWorkbenchContribution } from 'vs/workbench/common/contributions';
  import { ILifecycleService, LifecyclePhase } from 'vs/workbench/services/lifecycle/common/lifecycle';
@@ -109,17 +109,22 @@ index e213af6..33c8b16 100644
 -import { IFileDialogService } from 'vs/platform/dialogs/common/dialogs';
  import { URI } from 'vs/base/common/uri';
  import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
- import { IWorkspaceContextService } from 'vs/platform/workspace/common/workspace';
+ import { IWorkspaceContextService, WorkbenchState } from 'vs/platform/workspace/common/workspace';
  import { IWorkspaceTagsService } from 'vs/workbench/contrib/tags/common/workspaceTags';
 -import { getErrorMessage } from 'vs/base/common/errors';
  import { Categories } from 'vs/platform/action/common/actionCommonCategories';
  import { IOpenerService } from 'vs/platform/opener/common/opener';
+ import { Registry } from 'vs/platform/registry/common/platform';
+@@ -37,8 +35,6 @@ import { ConfigurationScope, Extensions, IConfigurationRegistry } from 'vs/platf
+ import { workbenchConfigurationNodeBase } from 'vs/workbench/common/configuration';
+ import { IProductService } from 'vs/platform/product/common/productService';
  
 -type IProfileTemplateQuickPickItem = IQuickPickItem & IProfileTemplateInfo;
- 
- export class UserDataProfilesWorkbenchContribution extends Disposable implements IWorkbenchContribution {
- 
-@@ -180,8 +177,6 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
+-
+ export const OpenProfileMenu = new MenuId('OpenProfile');
+ const CONFIG_ENABLE_NEW_PROFILES_UI = 'workbench.experimental.enableNewProfilesUI';
+ const CONTEXT_ENABLE_NEW_PROFILES_UI = ContextKeyExpr.equals('config.workbench.experimental.enableNewProfilesUI', true);
+@@ -339,8 +335,6 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
  		this.currentprofileActionsDisposable.value = new DisposableStore();
  		this.currentprofileActionsDisposable.value.add(this.registerEditCurrentProfileAction());
  		this.currentprofileActionsDisposable.value.add(this.registerShowCurrentProfileContentsAction());
@@ -127,8 +132,8 @@ index e213af6..33c8b16 100644
 -		this.currentprofileActionsDisposable.value.add(this.registerImportProfileAction());
  	}
  
- 	private registerEditCurrentProfileAction(): IDisposable {
-@@ -237,147 +232,6 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
+ 	private registerManageProfilesAction(): IDisposable {
+@@ -448,151 +442,6 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
  		});
  	}
  
@@ -147,7 +152,8 @@ index e213af6..33c8b16 100644
 -						{
 -							id: ProfilesMenu,
 -							group: '4_import_export_profiles',
--							order: 1
+-							order: 1,
+-							when: CONTEXT_ENABLE_NEW_PROFILES_UI.negate(),
 -						}, {
 -							id: MenuId.CommandPalette
 -						}
@@ -156,8 +162,11 @@ index e213af6..33c8b16 100644
 -			}
 -
 -			async run(accessor: ServicesAccessor) {
--				const userDataProfileImportExportService = accessor.get(IUserDataProfileImportExportService);
--				return userDataProfileImportExportService.exportProfile();
+-				if (that.isNewProfilesUIEnabled()) {
+-					return that.openProfilesEditor();
+-				} else {
+-					return that.userDataProfileImportExportService.exportProfile2();
+-				}
 -			}
 -		}));
 -		disposables.add(MenuRegistry.appendMenuItem(MenuId.MenubarShare, {
@@ -185,7 +194,7 @@ index e213af6..33c8b16 100644
 -						{
 -							id: ProfilesMenu,
 -							group: '4_import_export_profiles',
--							when: PROFILES_ENABLEMENT_CONTEXT,
+-							when: ContextKeyExpr.and(PROFILES_ENABLEMENT_CONTEXT, CONTEXT_ENABLE_NEW_PROFILES_UI.negate()),
 -							order: 2
 -						}, {
 -							id: MenuId.CommandPalette,
@@ -276,7 +285,7 @@ index e213af6..33c8b16 100644
  	private registerCreateFromCurrentProfileAction(): void {
  		const that = this;
  		this._register(registerAction2(class CreateFromCurrentProfileAction extends Action2 {
-@@ -494,18 +348,6 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
+@@ -719,18 +568,6 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
  		}));
  	}
  
@@ -295,6 +304,3 @@ index e213af6..33c8b16 100644
  	private async reportWorkspaceProfileInfo(): Promise<void> {
  		await this.lifecycleService.when(LifecyclePhase.Eventually);
  		const workspaceId = await this.workspaceTagsService.getTelemetryWorkspaceId(this.workspaceContextService.getWorkspace(), this.workspaceContextService.getWorkbenchState());
--- 
-2.39.5 (Apple Git-154)
-
