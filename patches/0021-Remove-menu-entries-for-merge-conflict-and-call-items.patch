@@ -12,7 +12,7 @@ This patch remove the context menu entries for merge conflict options and merge 
  4 files changed, 35 insertions(+), 71 deletions(-)
 
 diff --git a/extensions/merge-conflict/package.json b/extensions/merge-conflict/package.json
-index 737f842..b7ebc08 100644
+index afb50f0..cc104f7 100644
 --- a/extensions/merge-conflict/package.json
 +++ b/extensions/merge-conflict/package.json
 @@ -29,32 +29,6 @@
@@ -49,7 +49,7 @@ index 737f842..b7ebc08 100644
        "title": "%config.title%",
        "properties": {
 diff --git a/extensions/references-view/package.json b/extensions/references-view/package.json
-index 3952cb6..fa92c55 100644
+index 1ac066c..0be7a4e 100644
 --- a/extensions/references-view/package.json
 +++ b/extensions/references-view/package.json
 @@ -259,16 +259,6 @@
@@ -70,7 +70,7 @@ index 3952cb6..fa92c55 100644
            "command": "references-view.showSupertypes",
            "group": "1",
 diff --git a/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts b/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
-index 15e58a5..f4ae927 100644
+index 97f3861..2473f5a 100644
 --- a/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
 +++ b/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
 @@ -251,7 +251,7 @@ export class ActivityBarCompositeBar extends PaneCompositeBar {
@@ -82,6 +82,3 @@ index 15e58a5..f4ae927 100644
  		}
  		actions.push(new Separator());
  		actions.push(...this.getActivityBarContextMenuActions());
--- 
-2.40.1
-
