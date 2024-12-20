@@ -10,7 +10,7 @@ This patch disables user-facing task-related functionality in the codebase.
  2 files changed, 159 insertions(+), 167 deletions(-)
 
 diff --git a/src/vs/workbench/contrib/tasks/browser/task.contribution.ts b/src/vs/workbench/contrib/tasks/browser/task.contribution.ts
-index 8805990..db5c2a4 100644
+index 8805990..fec3f2d 100644
 --- a/src/vs/workbench/contrib/tasks/browser/task.contribution.ts
 +++ b/src/vs/workbench/contrib/tasks/browser/task.contribution.ts
 @@ -8,7 +8,7 @@ import * as nls from 'vs/nls';
@@ -74,7 +74,7 @@ index 8805990..db5c2a4 100644
  
  export class TaskStatusBarContributions extends Disposable implements IWorkbenchContribution {
  	private _runningTasksStatusItem: IStatusbarEntryAccessor | undefined;
-@@ -234,102 +228,102 @@ MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
+@@ -234,151 +228,151 @@ MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
  });
  
  
@@ -174,6 +174,13 @@ index 8805990..db5c2a4 100644
 -	},
 -	when: TaskExecutionSupportedContext
 -});
+-MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+-	command: {
+-		id: 'workbench.action.tasks.openUserTasks',
+-		title: nls.localize2('workbench.action.tasks.openUserTasks', "Open User Tasks"), category: TASKS_CATEGORY
+-	},
+-	when: TaskExecutionSupportedContext
+-});
 +// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
 +// 	command: {
 +// 		id: 'workbench.action.tasks.openWorkspaceFileTasks',
@@ -270,10 +277,15 @@ index 8805990..db5c2a4 100644
 +// 	},
 +// 	when: TaskExecutionSupportedContext
 +// });
- MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
- 	command: {
- 		id: 'workbench.action.tasks.openUserTasks',
-@@ -342,43 +336,43 @@ class UserTasksGlobalActionContribution extends Disposable implements IWorkbench
++// MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
++// 	command: {
++// 		id: 'workbench.action.tasks.openUserTasks',
++// 		title: nls.localize2('workbench.action.tasks.openUserTasks', "Open User Tasks"), category: TASKS_CATEGORY
++// 	},
++// 	when: TaskExecutionSupportedContext
++// });
+ 
+ class UserTasksGlobalActionContribution extends Disposable implements IWorkbenchContribution {
  
  	constructor() {
  		super();
@@ -374,7 +386,7 @@ index 8805990..db5c2a4 100644
  // tasks.json validation
  const schema: IJSONSchema = {
 diff --git a/src/vs/workbench/services/configuration/browser/configurationService.ts b/src/vs/workbench/services/configuration/browser/configurationService.ts
-index 7feab6a..5e75727 100644
+index c1bac6f..82c271c 100644
 --- a/src/vs/workbench/services/configuration/browser/configurationService.ts
 +++ b/src/vs/workbench/services/configuration/browser/configurationService.ts
 @@ -30,7 +30,6 @@ import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/
