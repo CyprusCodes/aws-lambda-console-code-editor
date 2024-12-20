@@ -1,7 +1,7 @@
 var express = require('express')
 var serveStatic = require('serve-static')
 
-var staticBasePath = './';
+var staticBasePath = './demo';
  
 var app = express()
  
